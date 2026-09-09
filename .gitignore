@@ -34,3 +34,10 @@ output/
 
 .VSCodeCounter
 *.syso
+# Intranet frontend and build outputs
+!/web/**/*.json
+!/intranet/*.json
+/web/public/static/vendor/
+/web/src/generated/
+/artifacts/
+/.build/

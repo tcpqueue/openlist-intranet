@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+if [ "$1" = configure ]; then
+    if ! getent passwd openlist-intranet >/dev/null; then
+        useradd --system --user-group --home-dir /var/lib/openlist-intranet --no-create-home --shell /usr/sbin/nologin openlist-intranet
+    fi
+    install -d -m 0750 -o openlist-intranet -g openlist-intranet /var/lib/openlist-intranet
+    if [ -d /run/systemd/system ]; then
+        systemctl daemon-reload
+        systemctl enable openlist-intranet.service >/dev/null
+        if command -v deb-systemd-invoke >/dev/null 2>&1; then
+            deb-systemd-invoke restart openlist-intranet.service || true
+        else
+            systemctl restart openlist-intranet.service || true
+        fi
+    fi
+fi

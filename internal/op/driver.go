@@ -19,6 +19,9 @@ func RegisterDriver(driver DriverConstructor) {
 	// log.Infof("register driver: [%s]", config.Name)
 	tempDriver := driver()
 	tempConfig := tempDriver.Config()
+	if !intranetDriverAllowed(tempConfig.Name) {
+		return
+	}
 	registerDriverItems(tempConfig, tempDriver.GetAddition())
 	driverMap[tempConfig.Name] = driver
 }

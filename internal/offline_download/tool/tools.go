@@ -22,6 +22,11 @@ func (t ToolsManager) Get(name string) (Tool, error) {
 }
 
 func (t ToolsManager) Add(tool Tool) {
+	switch tool.Name() {
+	case "aria2", "qBittorrent", "Transmission", "SimpleHttp":
+	default:
+		return
+	}
 	t[tool.Name()] = tool
 }
 

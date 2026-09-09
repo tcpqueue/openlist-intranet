@@ -1,0 +1,18 @@
+{
+  "resource": {
+    "url": "https://codeload.github.com/OpenListTeam/OpenList-Resource/tar.gz/950daec45ec423851e172f6296a8fbeeddd0f703",
+    "sha256": "58af2ce5d1d57600b30de518234d4ec1623224ecdda7c8de661b5cff948b9af6"
+  },
+  "jszip2": {
+    "url": "https://registry.npmjs.org/jszip/-/jszip-2.6.1.tgz",
+    "sha256": "498c8bfdf17742288b4694e44e04c8ff2a14d433f8aac1d7403eb7ec70357090"
+  },
+  "jszip3": {
+    "url": "https://registry.npmjs.org/jszip/-/jszip-3.10.1.tgz",
+    "sha256": "5117f4a2a645aeb307bf3b829c575ad58135cc97e75291e594532ab5b5b21b23"
+  },
+  "i18n": {
+    "url": "https://github.com/OpenListTeam/OpenList-Frontend/releases/download/v4.2.6/i18n.tar.gz",
+    "sha256": "de3160d4a784666002ff632e77c1653bbff32358a81377a1c964e6a29e306556"
+  }
+}

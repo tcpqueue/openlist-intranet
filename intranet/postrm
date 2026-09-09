@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+case "$1" in
+    remove|purge)
+        if [ -d /run/systemd/system ]; then
+            systemctl disable openlist-intranet.service >/dev/null 2>&1 || true
+            systemctl daemon-reload
+        fi
+        ;;
+esac
+# Keep /var/lib/openlist-intranet and its service account on removal/purge.
+# Administrators can explicitly archive or delete their files afterwards.

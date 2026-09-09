@@ -73,7 +73,7 @@ func Init(e *gin.Engine) {
 
 	api.POST("/auth/login", handles.Login)
 	api.POST("/auth/login/hash", handles.LoginHash)
-	api.POST("/auth/login/ldap", handles.LoginLdap)
+	api.POST("/auth/login/ldap", handles.IntranetDisabled)
 	auth.GET("/me", handles.CurrentUser)
 	auth.POST("/me/update", handles.UpdateCurrent)
 	auth.GET("/me/sshkey/list", handles.ListMyPublicKey)
@@ -84,10 +84,10 @@ func Init(e *gin.Engine) {
 	auth.GET("/auth/logout", handles.LogOut)
 
 	// auth
-	api.GET("/auth/sso", handles.SSOLoginRedirect)
-	api.GET("/auth/sso_callback", handles.SSOLoginCallback)
-	api.GET("/auth/get_sso_id", handles.SSOLoginCallback)
-	api.GET("/auth/sso_get_token", handles.SSOLoginCallback)
+	api.GET("/auth/sso", handles.IntranetDisabled)
+	api.GET("/auth/sso_callback", handles.IntranetDisabled)
+	api.GET("/auth/get_sso_id", handles.IntranetDisabled)
+	api.GET("/auth/sso_get_token", handles.IntranetDisabled)
 
 	// webauthn
 	api.GET("/authn/webauthn_begin_login", handles.BeginAuthnLogin)
@@ -160,15 +160,15 @@ func admin(g *gin.RouterGroup) {
 	setting.POST("/set_aria2", handles.SetAria2)
 	setting.POST("/set_qbit", handles.SetQbittorrent)
 	setting.POST("/set_transmission", handles.SetTransmission)
-	setting.POST("/set_115", handles.Set115)
-	setting.POST("/set_115_open", handles.Set115Open)
-	setting.POST("/set_123_pan", handles.Set123Pan)
-	setting.POST("/set_123_open", handles.Set123Open)
-	setting.POST("/set_pikpak", handles.SetPikPak)
-	setting.POST("/set_thunder", handles.SetThunder)
-	setting.POST("/set_thunderx", handles.SetThunderX)
-	setting.POST("/set_thunder_browser", handles.SetThunderBrowser)
-	setting.POST("/set_guangyapan", handles.SetGuangYaPan)
+	setting.POST("/set_115", handles.IntranetDisabled)
+	setting.POST("/set_115_open", handles.IntranetDisabled)
+	setting.POST("/set_123_pan", handles.IntranetDisabled)
+	setting.POST("/set_123_open", handles.IntranetDisabled)
+	setting.POST("/set_pikpak", handles.IntranetDisabled)
+	setting.POST("/set_thunder", handles.IntranetDisabled)
+	setting.POST("/set_thunderx", handles.IntranetDisabled)
+	setting.POST("/set_thunder_browser", handles.IntranetDisabled)
+	setting.POST("/set_guangyapan", handles.IntranetDisabled)
 
 	// retain /admin/task API to ensure compatibility with legacy automation scripts
 	_task(g.Group("/task"))

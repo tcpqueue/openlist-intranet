@@ -153,6 +153,7 @@ func GetSettingItemsInGroups(groups []int) ([]model.SettingItem, error) {
 func SaveSettingItems(items []model.SettingItem) error {
 	for i := range items {
 		item := &items[i]
+		NormalizeIntranetSetting(item)
 		if it, ok := MigrationSettingItems[item.Key]; ok &&
 			item.Value == it.MigrationValue {
 			item.Value = it.Value
@@ -170,6 +171,7 @@ func SaveSettingItems(items []model.SettingItem) error {
 }
 
 func SaveSettingItem(item *model.SettingItem) (err error) {
+	NormalizeIntranetSetting(item)
 	if it, ok := MigrationSettingItems[item.Key]; ok &&
 		item.Value == it.MigrationValue {
 		item.Value = it.Value
