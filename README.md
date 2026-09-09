@@ -15,7 +15,7 @@ sudo systemctl status openlist-intranet --no-pager
 
 浏览器访问 `http://127.0.0.1:5244`，其他内网机器可使用服务器的内网 IP。服务默认监听 5244 端口；如有其他程序占用，请调整配置后重启。
 
-初始管理员密码在首次启动日志中：
+新安装的默认管理员账号和密码均为 `admin`。若设置了 `OPENLIST_ADMIN_PASSWORD`，使用该环境变量指定的初始密码。已有数据目录的账户密码保持不变。可通过日志确认启动状态：
 
 ```sh
 sudo journalctl -u openlist-intranet --no-pager

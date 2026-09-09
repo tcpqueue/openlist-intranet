@@ -60,6 +60,9 @@ with tempfile.TemporaryDirectory(prefix='intranet-test-') as temp:
                 settings=api('/api/public/settings'); break
             except Exception: time.sleep(.1)
         else: raise RuntimeError('Server did not start')
+        login=api('/api/auth/login', {'username':'admin','password':'admin'})
+        assert login['code']==200, 'Default admin login failed'
+        result['api']['default_admin_login']=True
         db=sqlite3.connect(data/'data.db'); token=db.execute("select value from x_setting_items where key='token'").fetchone()[0]; db.close()
         result['api']['settings']={k:settings['data'].get(k) for k in ['logo','favicon','audio_cover','iframe_previews','external_previews','ocr_api','sso_login_enabled','ldap_login_enabled']}
         names=api('/api/admin/driver/names')['data']; result['api']['drivers']=names
