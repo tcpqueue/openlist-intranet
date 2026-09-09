@@ -53,3 +53,28 @@
 .hope-notification__list {
   width: unset;
 }
+
+/* Layout fallbacks supported by early Kylin V10 browsers. */
+.hope-button { flex-shrink: 0; }
+.fileinfo { min-width: 0; }
+.fileinfo h2 { overflow-wrap: break-word; word-wrap: break-word; }
+@supports not (backdrop-filter: blur(1px)) {
+  .hope-popover__content, .hope-menu__content { background-color: #fff; }
+  .hope-ui-dark .hope-popover__content, .hope-ui-dark .hope-menu__content { background-color: #20242b; }
+}
+
+.hope-modal__footer { gap: 0 !important; }
+.hope-modal__footer > * + * { margin-left: 8px; }
+.hope-button:focus, .hope-icon-button:focus {
+  outline: 2px solid #2979c7;
+  outline-offset: 2px;
+}
+@media (max-width: 640px) {
+  .home-container { width: 100%; }
+  .fileinfo h2 { font-size: 20px; }
+}
+
+/* Physical positioning also works before inset-inline-end was implemented. */
+.hope-modal__close-button, .hope-drawer__close-button { left: auto; right: 16px; }
+.hope-popover__close-button { left: auto; right: 8px; }
+.hope-modal__header { padding-right: 56px; }

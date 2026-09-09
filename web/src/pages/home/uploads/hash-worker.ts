@@ -27,22 +27,22 @@ self.onmessage = async (e: MessageEvent<{ file: File }>) => {
       createSHA256(),
     ])
 
-    const reader = file.stream().getReader()
-    let loaded = 0
-
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-
-      loaded += value.length
+    // FileReader and Blob.slice are supported by early Kylin browsers.
+    // Keep memory bounded while hashing large files in the worker.
+    const chunkSize = 2 * 1024 * 1024
+    for (let offset = 0; offset < file.size; offset += chunkSize) {
+      const end = Math.min(offset + chunkSize, file.size)
+      const buffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result as ArrayBuffer)
+        reader.onerror = () => reject(reader.error || new Error("读取文件失败"))
+        reader.readAsArrayBuffer(file.slice(offset, end))
+      })
+      const value = new Uint8Array(buffer)
       md5Digest.update(value)
       sha1Digest.update(value)
       sha256Digest.update(value)
-
-      const progress: WorkerProgressMessage = {
-        type: "progress",
-        progress: (loaded / file.size) * 100,
-      }
+      const progress: WorkerProgressMessage = { type: "progress", progress: end / file.size * 100 }
       self.postMessage(progress)
     }
 

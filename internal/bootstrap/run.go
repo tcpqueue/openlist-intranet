@@ -97,6 +97,9 @@ func Start() {
 		time.Sleep(time.Duration(conf.Conf.DelayedStart) * time.Second)
 	}
 	InitOfflineDownloadTools()
+	if err := EnsureIntranetDefaultStorage(); err != nil {
+		utils.Log.Fatalf("failed to initialize default storage: %v", err)
+	}
 	LoadStorages()
 	InitTaskManager()
 	if !flags.Debug && !flags.Dev {

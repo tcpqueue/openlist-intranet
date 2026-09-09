@@ -13,10 +13,10 @@ const theme: HopeThemeConfig = {
     Button: {
       baseStyle: {
         root: {
-          rounded: "$lg",
+          rounded: "$md",
           _active: {
-            transform: "scale(.95)",
-            transition: "0.2s",
+            transform: "none",
+            transition: "background-color 0.12s",
           },
           _focus: {
             boxShadow: "unset",
@@ -39,7 +39,7 @@ const theme: HopeThemeConfig = {
     Input: {
       baseStyle: {
         input: {
-          rounded: "$lg",
+          rounded: "$md",
           _focus: {
             boxShadow: "unset",
             borderColor: "$info8",
@@ -54,7 +54,7 @@ const theme: HopeThemeConfig = {
     },
     Textarea: {
       baseStyle: {
-        rounded: "$lg",
+        rounded: "$md",
         _focus: {
           boxShadow: "unset",
           borderColor: "$info8",
@@ -69,7 +69,7 @@ const theme: HopeThemeConfig = {
     Select: {
       baseStyle: {
         trigger: {
-          rounded: "$lg",
+          rounded: "$md",
           _focus: {
             boxShadow: "unset",
             borderColor: "$info8",
@@ -77,7 +77,7 @@ const theme: HopeThemeConfig = {
         },
         content: {
           border: "none",
-          rounded: "$lg",
+          rounded: "$md",
         },
         optionIndicator: {
           color: "$info10",
@@ -122,7 +122,7 @@ const theme: HopeThemeConfig = {
     Notification: {
       baseStyle: {
         root: {
-          rounded: "$lg",
+          rounded: "$md",
           border: "unset",
         },
       },
@@ -130,13 +130,13 @@ const theme: HopeThemeConfig = {
     Alert: {
       baseStyle: {
         root: {
-          rounded: "$lg",
+          rounded: "$md",
         },
       },
     },
     Anchor: {
       baseStyle: {
-        rounded: "$lg",
+        rounded: "$md",
         px: "$1_5",
         py: "$1",
         _hover: {
@@ -146,13 +146,13 @@ const theme: HopeThemeConfig = {
         _focus: {
           boxShadow: "unset",
         },
-        _active: { transform: "scale(.95)", transition: "0.1s" },
+        _active: { transform: "none", transition: "0.1s" },
       },
     },
     Modal: {
       baseStyle: {
         content: {
-          rounded: "$lg",
+          rounded: "$md",
         },
       },
     },
@@ -165,7 +165,7 @@ export const globalStyles = globalCss({
     padding: 0,
   },
   html: {
-    fontFamily: `-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol" !important`,
+    fontFamily: `"Noto Sans CJK SC","WenQuanYi Micro Hei","Microsoft YaHei",Arial,sans-serif !important`,
   },
   "#root": {
     display: "flex",

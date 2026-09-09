@@ -9,6 +9,7 @@ from playwright.sync_api import sync_playwright
 parser=argparse.ArgumentParser()
 parser.add_argument('--binary', required=True)
 parser.add_argument('--qemu')
+parser.add_argument('--browser-script')
 parser.add_argument('--out',required=True)
 parser.add_argument('--smoke',action='store_true')
 parser.add_argument('--only')
@@ -98,7 +99,12 @@ with tempfile.TemporaryDirectory(prefix='intranet-test-') as temp:
         for k,expected in [('sso_login_enabled','false'),('ocr_api',''),('iframe_previews','{}')]:
             actual=api('/api/admin/setting/get?key='+k)['data']['value']; assert actual==expected,(k,actual)
         result['api']['settings_policy_enforced']=True
-        created=api('/api/admin/storage/create',{'mount_path':'/','driver':'Local','addition':json.dumps({'root_folder_path':str(fixtures),'show_hidden':True})})
+        presets=api('/api/admin/storage/list')['data']['content']
+        assert len(presets)==1 and presets[0]['driver']=='Local' and presets[0]['mount_path']=='/'
+        assert json.loads(presets[0]['addition'])['root_folder_path']=='/tmp/openlist'
+        assert Path('/tmp/openlist').is_dir()
+        result['api']['default_tmp_storage_present']=True
+        created=api('/api/admin/storage/update',{'id':presets[0]['id'],'mount_path':'/','driver':'Local','addition':json.dumps({'root_folder_path':str(fixtures),'show_hidden':True})})
         assert created['code']==200,created
         listing=api('/api/fs/list',{'path':'/','password':'','page':1,'per_page':100,'refresh':True})
         assert listing['code']==200,listing
@@ -117,6 +123,8 @@ with tempfile.TemporaryDirectory(prefix='intranet-test-') as temp:
         assert not (fixtures/'unauthorized.txt').exists()
         result['api']['file_boundary_and_upload_auth_enforced']=True
 
+        if args.browser_script:
+            subprocess.run(['node',args.browser_script],env=dict(os.environ,INTRANET_TEST_BASE=base,INTRANET_TEST_TOKEN=token,INTRANET_TEST_OUT=str(out),INTRANET_TEST_FILES=str(fixtures)),check=True)
         with sync_playwright() as p:
             browser=p.chromium.launch(headless=True,args=['--no-sandbox','--disable-background-networking'])
             paths=['/','/sample.txt','/sample.md','/chinese.pdf','/sample.docx','/sample.xlsx','/sample.pptx','/disabled.epub','/disabled.swf','/@manage/about','/@manage/storages','/@manage/settings/other']
@@ -135,13 +143,14 @@ with tempfile.TemporaryDirectory(prefix='intranet-test-') as temp:
                 page.wait_for_timeout(7000 if route.endswith(('.pdf','.xlsx','.pptx')) else 3000)
                 assert page.evaluate('window.__intranetXSS') is None
                 case['text']=page.locator('body').inner_text()[:2500]
+                assert not any('/pdf-fonts/' in u or '/pdfium' in u or '/ppt.js/' in u or '/docxjs/' in u for u in case['requests']), 'Preview resource unexpectedly loaded'
                 case['external']=sorted({u for u in case['requests'] if urlparse(u).scheme in ['https','http'] and urlparse(u).hostname!='127.0.0.1'})
                 result['cases'].append(case)
                 if route.endswith('/settings/other'): page.locator('input').evaluate_all("inputs => inputs.forEach(input => input.style.visibility = 'hidden')")
                 page.screenshot(path=str(out/('screen-'+route.strip('/').replace('/','-')+'.png')),full_page=True)
                 # Inspect local library loading in addition to file content, including shadow DOM PPT.
                 for ext,label in [('.docx','DOCX 内网预览验证'),('.xlsx','XLSX 内网预览验证'),('.pptx','PPTX 内网预览验证')]:
-                    if route.endswith(ext): assert page.get_by_text(label,exact=False).count()>0,(route,case['text'])
+                    if route.endswith(ext): assert page.get_by_text('下载到本地后',exact=False).count()>0,(route,case['text'])
                 print(json.dumps({'path':route,'external':case['external'],'http_errors':case['http_errors'],'errors':case['errors']},ensure_ascii=False),flush=True)
                 ctx.close()
             browser.close()
@@ -151,6 +160,23 @@ with tempfile.TemporaryDirectory(prefix='intranet-test-') as temp:
             reply=api('/api/auth/login',{'username':'admin','password':'wrong'},headers={'X-Forwarded-For':f'10.0.0.{i+1}','X-Real-IP':f'10.0.0.{i+1}'})
         assert reply['code']==429,reply
         result['api']['spoofed_forward_headers_do_not_bypass_login_limit']=True
+        def restart_test_server():
+            global proc
+            os.killpg(proc.pid,signal.SIGTERM)
+            proc.wait(timeout=20)
+            proc=subprocess.Popen(command,stdout=log,stderr=log,start_new_session=True)
+            for _ in range(300):
+                try:
+                    response=api('/api/admin/storage/list')
+                    if response['code']==200: return response['data']['content']
+                except Exception: pass
+                time.sleep(.1)
+            raise RuntimeError('Restart did not complete')
+        existing=restart_test_server()
+        assert len(existing)==1 and json.loads(existing[0]['addition'])['root_folder_path']==str(fixtures)
+        assert api('/api/admin/storage/delete?id='+str(existing[0]['id']),{},method='POST')['code']==200
+        assert restart_test_server()==[]
+        result['api']['restart_preserves_storage_and_does_not_recreate_deleted_preset']=True
         result['passed']=True
     finally:
         encoded = json.dumps(result, ensure_ascii=False, indent=2)

@@ -1,4 +1,5 @@
 /* @refresh reload */
+import "./utils/legacy-browser"
 import { Router } from "@solidjs/router"
 import { render } from "solid-js/web"
 

@@ -281,7 +281,7 @@ export const Tasks = (props: TasksProps) => {
   return (
     <VStack w="$full" alignItems="start" spacing="$2">
       <Heading size="lg">{t(`tasks.${props.done}`)}</Heading>
-      <HStack gap="$2" flexWrap="wrap">
+      <HStack spacing="$2" flexWrap="wrap">
         <Show when={props.done === "done"}>
           <Button colorScheme="accent" loading={loading()} onClick={refresh}>
             {t(`global.refresh`)}

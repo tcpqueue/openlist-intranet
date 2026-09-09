@@ -9,6 +9,7 @@ import {
   PopoverBody,
   PopoverContent,
   PopoverTrigger,
+  Text,
 } from "@hope-ui/solid"
 import { useCopyLink, useLink, useT } from "~/hooks"
 import { objStore } from "~/store"
@@ -31,6 +32,7 @@ export const Download = (props: { openWith?: boolean }) => {
   const [hover, setHover] = createSignal(false)
   return (
     <FileInfo>
+      <Text color="$neutral11">下载到本地后，使用电脑上的软件打开文件。</Text>
       <HStack spacing="$2">
         <ButtonGroup colorScheme="accent" attached>
           <Button onClick={() => copyCurrentRawLink(true)}>
@@ -60,7 +62,7 @@ export const Download = (props: { openWith?: boolean }) => {
             </PopoverContent>
           </Popover>
         </ButtonGroup>
-        <Button as="a" href={objStore.raw_url} target="_blank">
+        <Button as="a" href={objStore.raw_url} download={objStore.obj.name}>
           {t("home.preview.download")}
         </Button>
       </HStack>

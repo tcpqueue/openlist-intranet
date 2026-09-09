@@ -57,12 +57,7 @@ export const side_menu_items: SideMenuItem[] = [
         to: "/@manage/settings/style",
         component: () => <CommonSettings group={Group.STYLE} />,
       },
-      {
-        title: "manage.sidemenu.preview",
-        icon: BsCameraFill,
-        to: "/@manage/settings/preview",
-        component: () => <CommonSettings group={Group.PREVIEW} />,
-      },
+
       {
         title: "manage.sidemenu.global",
         icon: BsJoystick,

@@ -4,6 +4,7 @@ root=Path(__file__).resolve().parents[2]
 unit=(root/'intranet/openlist-intranet.service').read_text()
 assert 'User=root\n' in unit and 'Group=root\n' in unit
 assert 'WantedBy=multi-user.target' in unit
+assert 'PrivateTmp=false' in unit
 assert 'ExecStart=/usr/bin/openlist-intranet server --data /var/lib/openlist-intranet' in unit
 for script in ['postinst','prerm','postrm']:
     subprocess.run(['sh','-n',str(root/'intranet'/script)],check=True)

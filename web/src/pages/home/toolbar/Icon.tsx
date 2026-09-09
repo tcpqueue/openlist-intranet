@@ -55,6 +55,8 @@ export const RightIcon = <C extends ElementType = "svg">(
       label={t(`home.toolbar.${props.tips}`)}
     >
       <Icon
+        class={`toolbar-${props.tips || "action"}`}
+        aria-label={props.tips ? t(`home.toolbar.${props.tips}`) : undefined}
         // bgColor="$info4"
         color={getMainColor()}
         _hover={{

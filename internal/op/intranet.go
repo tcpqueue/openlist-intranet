@@ -14,6 +14,15 @@ func intranetDriverAllowed(name string) bool {
 // Apply the edition policy both on startup and on settings writes/imports.
 func NormalizeIntranetSetting(item *model.SettingItem) {
 	switch item.Key {
+	case "home_icon":
+		if item.Value == "🏠" {
+			item.Value = ""
+		}
+	case "announcement":
+		if item.Value == "内网文件服务。支持本地存储、内网文件协议及本地文档预览。" || item.Value == "内网文件服务。文件下载到本地后，使用电脑上的软件打开。" {
+			item.Value = ""
+		}
+
 	case "filter_readme_scripts":
 		item.Value = "true"
 		item.Flag = model.READONLY

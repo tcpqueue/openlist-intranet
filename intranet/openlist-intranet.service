@@ -13,7 +13,7 @@ RestartSec=5
 TimeoutStopSec=15
 UMask=0027
 NoNewPrivileges=true
-PrivateTmp=true
+PrivateTmp=false
 ProtectSystem=full
 LimitNOFILE=65536
 

@@ -43,7 +43,8 @@ export default defineConfig({
   plugins: [
     solidPlugin(),
     legacy({
-      targets: ["defaults"],
+      targets: ["Chrome >= 69", "Firefox >= 68"],
+      modernTargets: ["Chrome >= 69", "Firefox >= 68"],
     }),
     dynamicBase({
       // dynamic public path var string, default window.__dynamic_base__
@@ -58,10 +59,6 @@ export default defineConfig({
       ? viteStaticCopy({
           targets: [
             {
-              src: "node_modules/monaco-editor/min/*",
-              dest: "static/monaco-editor",
-            },
-            {
               src: "node_modules/katex/dist/katex.min.css",
               dest: "static/katex",
             },
@@ -73,18 +70,6 @@ export default defineConfig({
               src: "node_modules/mermaid/dist/mermaid.min.js",
               dest: "static/mermaid",
             },
-            {
-              src: "node_modules/libheif-js/libheif-wasm/libheif.{js,wasm}",
-              dest: "static/libheif",
-            },
-            {
-              src: "node_modules/@jellyfin/libass-wasm/dist/js/subtitles-octopus-worker.{js,wasm}",
-              dest: "static/libass-wasm",
-            },
-            {
-              src: "src/components/artplayer-plugin-ass/fonts/*",
-              dest: "static/fonts",
-            },
           ],
         })
       : null,
@@ -93,7 +78,8 @@ export default defineConfig({
   base: process.env.NODE_ENV === "production" ? "/__dynamic_base__/" : "/",
   // base: "/",
   build: {
-    // target: "es2015", //next
+    target: "es2015",
+    cssTarget: ["chrome69", "firefox68"],
     // polyfillDynamicImport: false,
   },
   // experimental: {

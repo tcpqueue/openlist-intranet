@@ -5,6 +5,7 @@ allowBuilds:
 patchedDependencies:
   # if https://github.com/chenxch/vite-plugin-dynamic-base/pull/36 is merged,
   # this patch can be removed
+  tabbable@6.4.0: patches/tabbable@6.4.0.patch
   vite-plugin-dynamic-base: patches/vite-plugin-dynamic-base.patch
 onlyBuiltDependencies:
   - mpegts.js

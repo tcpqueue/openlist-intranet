@@ -258,7 +258,7 @@ const Profile = () => {
         }
       >
         <Heading>{t("users.webauthn")}</Heading>
-        <HStack wrap="wrap" gap="$2" mt="$2">
+        <HStack wrap="wrap" spacing="$2" mt="$2">
           <MaybeLoading loading={getauthncredentialsloading()}>
             <For each={credentials()}>
               {(item) => (
@@ -298,7 +298,7 @@ const Profile = () => {
           {t("users.add_webauthn")}
         </Button>
       </Show>
-      <HStack wrap="wrap" gap="$2" mt="$2">
+      <HStack wrap="wrap" spacing="$2" mt="$2">
         <For each={UserPermissions}>
           {(item, i) => (
             <PermissionBadge can={UserMethods.can(me(), i())}>

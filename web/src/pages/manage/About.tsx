@@ -10,9 +10,7 @@ export default function About() {
         基于 OpenList v4.2.6，提供本地文件管理及内网协议挂载。
       </Text>
       <Text mt="$2">
-        Office 预览、PDF
-        阅读器和字体由本站提供。公共网盘、第三方登录、OCR、Flash 和 EPUB
-        预览已关闭。
+        文件统一下载到本地打开，不加载在线阅读器、播放器和预览字体。公共网盘、第三方登录及 OCR 已关闭。
       </Text>
       <Text mt="$2">
         OpenList 后端遵循 AGPL-3.0，前端遵循 MIT。版权及第三方许可随安装包提供。

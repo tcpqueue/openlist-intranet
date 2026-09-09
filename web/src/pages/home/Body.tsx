@@ -15,7 +15,7 @@ export const Body = () => {
         px="2%"
         minH="80vh"
         w="$full"
-        gap="$4"
+        spacing="$4"
       >
         <Readme files={["header.md", "top.md", "index.md"]} fromMeta="header" />
         <Nav />

@@ -1,0 +1,113 @@
+diff --git a/dist/index.esm.js b/dist/index.esm.js
+index fb317297b83c8fb6038075dd859f4629f9071154..a520daa6ba2705baa0882fb1197ec298f1bfaefb 100644
+--- a/dist/index.esm.js
++++ b/dist/index.esm.js
+@@ -4,7 +4,7 @@
+ */
+ // NOTE: separate `:not()` selectors has broader browser support than the newer
+ //  `:not([inert], [inert] *)` (Feb 2023)
+-var candidateSelectors = ['input:not([inert]):not([inert] *)', 'select:not([inert]):not([inert] *)', 'textarea:not([inert]):not([inert] *)', 'a[href]:not([inert]):not([inert] *)', 'button:not([inert]):not([inert] *)', '[tabindex]:not(slot):not([inert]):not([inert] *)', 'audio[controls]:not([inert]):not([inert] *)', 'video[controls]:not([inert]):not([inert] *)', '[contenteditable]:not([contenteditable="false"]):not([inert]):not([inert] *)', 'details>summary:first-of-type:not([inert]):not([inert] *)', 'details:not([inert]):not([inert] *)'];
++var candidateSelectors = ['input:not([inert])', 'select:not([inert])', 'textarea:not([inert])', 'a[href]:not([inert])', 'button:not([inert])', '[tabindex]:not(slot):not([inert])', 'audio[controls]:not([inert])', 'video[controls]:not([inert])', '[contenteditable]:not([contenteditable="false"]):not([inert])', 'details>summary:first-of-type:not([inert])', 'details:not([inert])'];
+ var candidateSelector = /* #__PURE__ */candidateSelectors.join(',');
+ var NoElement = typeof Element === 'undefined';
+ var matches = NoElement ? function () {} : Element.prototype.matches || Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
+@@ -482,7 +482,7 @@ var isDisabledFromFieldset = function isDisabledFromFieldset(node) {
+   return false;
+ };
+ var isNodeMatchingSelectorFocusable = function isNodeMatchingSelectorFocusable(options, node) {
+-  if (node.disabled || isHiddenInput(node) || isHidden(node, options) ||
++  if (_isInert(node) || node.disabled || isHiddenInput(node) || isHidden(node, options) ||
+   // For a details element with a summary, the summary element gets the focus
+   isDetailsWithSummary(node) || isDisabledFromFieldset(node)) {
+     return false;
+@@ -573,7 +573,7 @@ var isTabbable = function isTabbable(node, options) {
+   }
+   return isNodeMatchingSelectorTabbable(options, node);
+ };
+-var focusableCandidateSelector = /* #__PURE__ */candidateSelectors.concat('iframe:not([inert]):not([inert] *)').join(',');
++var focusableCandidateSelector = /* #__PURE__ */candidateSelectors.concat('iframe:not([inert])').join(',');
+ var isFocusable = function isFocusable(node, options) {
+   options = options || {};
+   if (!node) {
+diff --git a/dist/index.js b/dist/index.js
+index 08c875b1b7c6193c47371b2750980bfbdcac7d59..b816f23258badc1a693105fffc5b91cc005defb4 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -6,7 +6,7 @@
+ 
+ // NOTE: separate `:not()` selectors has broader browser support than the newer
+ //  `:not([inert], [inert] *)` (Feb 2023)
+-var candidateSelectors = ['input:not([inert]):not([inert] *)', 'select:not([inert]):not([inert] *)', 'textarea:not([inert]):not([inert] *)', 'a[href]:not([inert]):not([inert] *)', 'button:not([inert]):not([inert] *)', '[tabindex]:not(slot):not([inert]):not([inert] *)', 'audio[controls]:not([inert]):not([inert] *)', 'video[controls]:not([inert]):not([inert] *)', '[contenteditable]:not([contenteditable="false"]):not([inert]):not([inert] *)', 'details>summary:first-of-type:not([inert]):not([inert] *)', 'details:not([inert]):not([inert] *)'];
++var candidateSelectors = ['input:not([inert])', 'select:not([inert])', 'textarea:not([inert])', 'a[href]:not([inert])', 'button:not([inert])', '[tabindex]:not(slot):not([inert])', 'audio[controls]:not([inert])', 'video[controls]:not([inert])', '[contenteditable]:not([contenteditable="false"]):not([inert])', 'details>summary:first-of-type:not([inert])', 'details:not([inert])'];
+ var candidateSelector = /* #__PURE__ */candidateSelectors.join(',');
+ var NoElement = typeof Element === 'undefined';
+ var matches = NoElement ? function () {} : Element.prototype.matches || Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
+@@ -484,7 +484,7 @@ var isDisabledFromFieldset = function isDisabledFromFieldset(node) {
+   return false;
+ };
+ var isNodeMatchingSelectorFocusable = function isNodeMatchingSelectorFocusable(options, node) {
+-  if (node.disabled || isHiddenInput(node) || isHidden(node, options) ||
++  if (_isInert(node) || node.disabled || isHiddenInput(node) || isHidden(node, options) ||
+   // For a details element with a summary, the summary element gets the focus
+   isDetailsWithSummary(node) || isDisabledFromFieldset(node)) {
+     return false;
+@@ -575,7 +575,7 @@ var isTabbable = function isTabbable(node, options) {
+   }
+   return isNodeMatchingSelectorTabbable(options, node);
+ };
+-var focusableCandidateSelector = /* #__PURE__ */candidateSelectors.concat('iframe:not([inert]):not([inert] *)').join(',');
++var focusableCandidateSelector = /* #__PURE__ */candidateSelectors.concat('iframe:not([inert])').join(',');
+ var isFocusable = function isFocusable(node, options) {
+   options = options || {};
+   if (!node) {
+diff --git a/src/index.js b/src/index.js
+index 8c4044e0042fe083fc898d6d6e693747baf3b1b5..e42a8612c92500da1bfb1705aa856cd49bd7601c 100644
+--- a/src/index.js
++++ b/src/index.js
+@@ -1,17 +1,17 @@
+ // NOTE: separate `:not()` selectors has broader browser support than the newer
+ //  `:not([inert], [inert] *)` (Feb 2023)
+ const candidateSelectors = [
+-  'input:not([inert]):not([inert] *)',
+-  'select:not([inert]):not([inert] *)',
+-  'textarea:not([inert]):not([inert] *)',
+-  'a[href]:not([inert]):not([inert] *)',
+-  'button:not([inert]):not([inert] *)',
+-  '[tabindex]:not(slot):not([inert]):not([inert] *)',
+-  'audio[controls]:not([inert]):not([inert] *)',
+-  'video[controls]:not([inert]):not([inert] *)',
+-  '[contenteditable]:not([contenteditable="false"]):not([inert]):not([inert] *)',
+-  'details>summary:first-of-type:not([inert]):not([inert] *)',
+-  'details:not([inert]):not([inert] *)',
++  'input:not([inert])',
++  'select:not([inert])',
++  'textarea:not([inert])',
++  'a[href]:not([inert])',
++  'button:not([inert])',
++  '[tabindex]:not(slot):not([inert])',
++  'audio[controls]:not([inert])',
++  'video[controls]:not([inert])',
++  '[contenteditable]:not([contenteditable="false"]):not([inert])',
++  'details>summary:first-of-type:not([inert])',
++  'details:not([inert])',
+ ];
+ const candidateSelector = /* #__PURE__ */ candidateSelectors.join(',');
+ 
+@@ -563,7 +563,7 @@ const isDisabledFromFieldset = function (node) {
+ 
+ const isNodeMatchingSelectorFocusable = function (options, node) {
+   if (
+-    node.disabled ||
++    isInert(node) || node.disabled ||
+     isHiddenInput(node) ||
+     isHidden(node, options) ||
+     // For a details element with a summary, the summary element gets the focus
+@@ -696,7 +696,7 @@ const isTabbable = function (node, options) {
+ };
+ 
+ const focusableCandidateSelector = /* #__PURE__ */ candidateSelectors
+-  .concat('iframe:not([inert]):not([inert] *)')
++  .concat('iframe:not([inert])')
+   .join(',');
+ 
+ const isFocusable = function (node, options) {

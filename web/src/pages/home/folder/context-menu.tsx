@@ -15,7 +15,6 @@ import {
   selectedObjs,
   userCan,
 } from "~/store"
-import { players } from "../previews/video_box"
 import { getPreviews } from "../previews"
 import { BsPlayCircleFill } from "solid-icons/bs"
 import { isArchive } from "~/store/archive"
@@ -140,46 +139,7 @@ export const ContextMenu = () => {
         >
           <ItemContent name="download" />
         </Item>
-        <Submenu
-          hidden={({ props }) => {
-            return props.type !== ObjType.VIDEO
-          }}
-          label={
-            <HStack spacing="$2">
-              <Icon
-                as={BsPlayCircleFill}
-                boxSize="$7"
-                p="$0_5"
-                color="$info9"
-              />
-              <Text>{t("home.preview.play_with")}</Text>
-            </HStack>
-          }
-        >
-          <For each={players}>
-            {(player) => (
-              <Item
-                onClick={({ props }) => {
-                  const href = convertURL(player.scheme, {
-                    raw_url: "",
-                    name: props.name,
-                    d_url: rawLink(props, true),
-                  })
-                  window.open(href, "_self")
-                }}
-              >
-                <HStack spacing="$2">
-                  <Image
-                    m="0 auto"
-                    boxSize="$7"
-                    src={`${window.__dynamic_base__}/images/${player.icon}.webp`}
-                  />
-                  <Text>{player.name}</Text>
-                </HStack>
-              </Item>
-            )}
-          </For>
-        </Submenu>
+
       </Show>
       <Show when={!oneChecked() && haveSelected()}>
         <Submenu label={<ItemContent name="copy_link" />}>
