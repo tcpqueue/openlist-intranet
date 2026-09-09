@@ -48,6 +48,9 @@ export function Readme(props: {
       content: readme as string | ArrayBuffer,
     }
     if (/^https?:\/\//g.test(readme)) {
+      if (new URL(readme, location.href).origin !== location.origin) {
+        return { content: "远程 README 已禁用" }
+      }
       res = await fetchText(readme)
     }
     return res

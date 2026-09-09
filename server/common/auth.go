@@ -41,7 +41,7 @@ func GenerateToken(user *model.User) (tokenString string, err error) {
 func ParseToken(tokenString string) (*UserClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &UserClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return SecretKey, nil
-	})
+	}, jwt.WithValidMethods([]string{"HS256"}))
 	if IsTokenInvalidated(tokenString) {
 		return nil, errors.New("token is invalidated")
 	}
@@ -57,6 +57,9 @@ func ParseToken(tokenString string) (*UserClaims, error) {
 				return nil, errors.New("couldn't handle this token")
 			}
 		}
+	}
+	if token == nil {
+		return nil, errors.New("invalid token")
 	}
 	if claims, ok := token.Claims.(*UserClaims); ok && token.Valid {
 		return claims, nil

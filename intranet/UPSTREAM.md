@@ -8,7 +8,7 @@
 - 简体中文：前端 v4.2.6 release 的 `i18n.tar.gz`。
 - PDF 阅读器：`@embedpdf/snippet 2.15.0`，PDF 回退字体包 `@embedpdf/fonts-* 1.0.0`，字体许可 OFL-1.1。
 - ExcelJS：4.4.0（替换资源仓库中的旧版以修复 XLSX 兼容性），MIT。
-- JSZip：2.6.1 和 3.10.1，分别供 PPTX 与 DOCX 预览使用，保留上游许可。
+- JSZip：3.10.1，供 PPTX 与 DOCX 预览使用；PPTX 另使用 jQuery 3.7.1 和 DOMPurify 3.4.13，保留上游许可。
 - PDF 界面与签名字体：`@fontsource/open-sans`、`caveat`、`dancing-script`、`great-vibes`、`pacifico`，具体版本由 pnpm 锁文件固定，保留 OFL 字体许可。
 
 主要修改包括同源预览资源、PDF 字体本地化、关闭公共服务及相应入口、内网驱动注册限制、离线构建资源校验和 deb/systemd 打包。另修正上游 Monaco 类型导入以及动态预览/存储表单的类型声明，以通过当前锁定工具链的 TypeScript 检查。

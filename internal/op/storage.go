@@ -46,6 +46,9 @@ func GetStorageByMountPath(mountPath string) (driver.Driver, error) {
 // CreateStorage Save the storage to database so storage can get an id
 // then instantiate corresponding driver and save it in memory
 func CreateStorage(ctx context.Context, storage model.Storage) (uint, error) {
+	if err := normalizeIntranetStorage(&storage); err != nil {
+		return 0, err
+	}
 	storage.Modified = time.Now()
 	storage.MountPath = utils.FixAndCleanPath(storage.MountPath)
 	var err error
@@ -96,6 +99,9 @@ func getCurrentGoroutineStack() string {
 
 // initStorage initialize the driver and store to storagesMap
 func initStorage(ctx context.Context, storage model.Storage, storageDriver driver.Driver) (err error) {
+	if err := normalizeIntranetStorage(&storage); err != nil {
+		return err
+	}
 	storageDriver.SetStorage(storage)
 	driverStorage := storageDriver.GetStorage()
 	defer func() {
@@ -220,6 +226,9 @@ func DisableStorage(ctx context.Context, id uint) error {
 // get old storage first
 // drop the storage then reinitialize
 func UpdateStorage(ctx context.Context, storage model.Storage) error {
+	if err := normalizeIntranetStorage(&storage); err != nil {
+		return err
+	}
 	oldStorage, err := db.GetStorageById(storage.ID)
 	if err != nil {
 		return errors.WithMessage(err, "failed get old storage")

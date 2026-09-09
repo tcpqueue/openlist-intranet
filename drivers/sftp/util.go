@@ -1,7 +1,9 @@
 package sftp
 
 import (
+	"crypto/subtle"
 	"fmt"
+	"net"
 	"path"
 	"time"
 
@@ -37,10 +39,15 @@ func (d *SFTP) _initClient() error {
 		auth = ssh.Password(d.Password)
 	}
 	config := &ssh.ClientConfig{
-		User:            d.Username,
-		Auth:            []ssh.AuthMethod{auth},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		Timeout:         10 * time.Second,
+		User: d.Username,
+		Auth: []ssh.AuthMethod{auth},
+		HostKeyCallback: func(_ string, _ net.Addr, key ssh.PublicKey) error {
+			if d.HostKeyFingerprint == "" || subtle.ConstantTimeCompare([]byte(ssh.FingerprintSHA256(key)), []byte(d.HostKeyFingerprint)) != 1 {
+				return fmt.Errorf("SSH host-key fingerprint mismatch")
+			}
+			return nil
+		},
+		Timeout: 10 * time.Second,
 	}
 	conn, err := ssh.Dial("tcp", d.Address, config)
 	if err != nil {

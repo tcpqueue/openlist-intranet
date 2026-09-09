@@ -17,7 +17,7 @@ import (
 func Auth(allowDisabledGuest bool) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		token := c.GetHeader("Authorization")
-		if subtle.ConstantTimeCompare([]byte(token), []byte(setting.GetStr(conf.Token))) == 1 {
+		if token != "" && subtle.ConstantTimeCompare([]byte(token), []byte(setting.GetStr(conf.Token))) == 1 {
 			admin, err := op.GetAdmin()
 			if err != nil {
 				common.ErrorResp(c, err, 500)
@@ -77,7 +77,7 @@ func Auth(allowDisabledGuest bool) func(c *gin.Context) {
 
 func Authn(c *gin.Context) {
 	token := c.GetHeader("Authorization")
-	if subtle.ConstantTimeCompare([]byte(token), []byte(setting.GetStr(conf.Token))) == 1 {
+	if token != "" && subtle.ConstantTimeCompare([]byte(token), []byte(setting.GetStr(conf.Token))) == 1 {
 		admin, err := op.GetAdmin()
 		if err != nil {
 			common.ErrorResp(c, err, 500)

@@ -101,13 +101,6 @@ export const side_menu_items: SideMenuItem[] = [
     to: "/@manage/tasks",
     role: UserRole.GENERAL,
     children: [
-      {
-        title: "manage.sidemenu.offline_download",
-        icon: IoMagnetOutline,
-        to: "/@manage/tasks/offline_download",
-        role: UserRole.GENERAL,
-        component: lazy(() => import("./tasks/offline_download")),
-      },
       // {
       //   title: "manage.sidemenu.aria2",
       //   icon: BsCloudArrowDownFill,
@@ -193,13 +186,6 @@ export const side_menu_items: SideMenuItem[] = [
     to: "/@manage/about",
     role: UserRole.GUEST,
     component: lazy(() => import("./About")),
-  },
-  {
-    title: "manage.sidemenu.docs",
-    icon: FaSolidBook,
-    to: "https://doc.oplist.org",
-    role: UserRole.GUEST,
-    external: true,
   },
   {
     title: "manage.sidemenu.home",

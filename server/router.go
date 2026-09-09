@@ -18,6 +18,9 @@ import (
 
 func Init(e *gin.Engine) {
 	e.ContextWithFallback = true
+	// Direct deployment: never trust client-supplied forwarding headers.
+	_ = e.SetTrustedProxies(nil)
+	e.Use(middlewares.IntranetResources)
 	if !utils.SliceContains([]string{"", "/"}, conf.URL.Path) {
 		e.GET("/", func(c *gin.Context) {
 			c.Redirect(302, conf.URL.Path)
@@ -157,9 +160,9 @@ func admin(g *gin.RouterGroup) {
 	setting.POST("/delete", handles.DeleteSetting)
 	setting.POST("/default", handles.DefaultSettings)
 	setting.POST("/reset_token", handles.ResetToken)
-	setting.POST("/set_aria2", handles.SetAria2)
-	setting.POST("/set_qbit", handles.SetQbittorrent)
-	setting.POST("/set_transmission", handles.SetTransmission)
+	setting.POST("/set_aria2", handles.IntranetDisabled)
+	setting.POST("/set_qbit", handles.IntranetDisabled)
+	setting.POST("/set_transmission", handles.IntranetDisabled)
 	setting.POST("/set_115", handles.IntranetDisabled)
 	setting.POST("/set_115_open", handles.IntranetDisabled)
 	setting.POST("/set_123_pan", handles.IntranetDisabled)
@@ -225,13 +228,13 @@ func _fs(g *gin.RouterGroup) {
 	// g.POST("/add_aria2", handles.AddOfflineDownload)
 	// g.POST("/add_qbit", handles.AddQbittorrent)
 	// g.POST("/add_transmission", handles.SetTransmission)
-	g.POST("/add_offline_download", handles.AddOfflineDownload)
+	g.POST("/add_offline_download", handles.IntranetDisabled)
 	g.POST("/archive/decompress", handles.FsArchiveDecompress)
 	// Torrent 相关接口
-	g.POST("/torrent/parse", handles.ParseTorrent)
-	g.POST("/torrent/upload_parse", handles.UploadTorrentAndParse)
-	g.POST("/torrent/rapid_upload", handles.TorrentRapidUpload)
-	g.POST("/torrent/generate", handles.GenerateTorrentForPath)
+	g.POST("/torrent/parse", handles.IntranetDisabled)
+	g.POST("/torrent/upload_parse", handles.IntranetDisabled)
+	g.POST("/torrent/rapid_upload", handles.IntranetDisabled)
+	g.POST("/torrent/generate", handles.IntranetDisabled)
 	// Direct upload (client-side upload to storage)
 	g.POST("/get_direct_upload_info", handles.FsGetDirectUploadInfo)
 }

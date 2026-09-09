@@ -3,6 +3,8 @@ package ftp
 import (
 	"context"
 	"fmt"
+	intranetnet "github.com/OpenListTeam/OpenList/v4/internal/net"
+	"net"
 	"time"
 
 	"github.com/OpenListTeam/OpenList/v4/pkg/singleflight"
@@ -30,7 +32,9 @@ func (d *FTP) login() error {
 }
 
 func (d *FTP) _login(ctx context.Context) (*ftp.ServerConn, error) {
-	conn, err := ftp.Dial(d.Address, ftp.DialWithShutTimeout(10*time.Second), ftp.DialWithContext(ctx))
+	conn, err := ftp.Dial(d.Address, ftp.DialWithShutTimeout(10*time.Second), ftp.DialWithContext(ctx), ftp.DialWithDialFunc(func(network, address string) (net.Conn, error) {
+		return intranetnet.IntranetDialContext(ctx, network, address)
+	}))
 	if err != nil {
 		return nil, err
 	}

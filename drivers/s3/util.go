@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/OpenListTeam/OpenList/v4/internal/model"
+	intranetnet "github.com/OpenListTeam/OpenList/v4/internal/net"
 	"github.com/OpenListTeam/OpenList/v4/internal/op"
 	"github.com/OpenListTeam/OpenList/v4/pkg/utils"
 	"github.com/aws/aws-sdk-go/aws"
@@ -40,6 +41,7 @@ func (d *S3) initSession() error {
 		accessKeyID, secretAccessKey, sessionToken = credentialsTmp.AccessKeyId, credentialsTmp.SecretAccessKey, credentialsTmp.SessionToken
 	}
 	cfg := &aws.Config{
+		HTTPClient:       intranetnet.NewHttpClient(),
 		Credentials:      credentials.NewStaticCredentials(accessKeyID, secretAccessKey, sessionToken),
 		Region:           &d.Region,
 		Endpoint:         &d.Endpoint,

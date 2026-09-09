@@ -23,7 +23,6 @@ import (
 	"github.com/OpenListTeam/OpenList/v4/pkg/utils"
 	"github.com/OpenListTeam/OpenList/v4/server/common"
 	"github.com/OpenListTeam/times"
-	log "github.com/sirupsen/logrus"
 	_ "golang.org/x/image/webp"
 )
 
@@ -49,6 +48,10 @@ func (d *Local) Config() driver.Config {
 }
 
 func (d *Local) Init(ctx context.Context) error {
+	// Disable external decoders and path-based background scanners in this edition.
+	d.Thumbnail = false
+	d.ThumbCacheFolder = ""
+	d.DirectorySize = false
 	if d.MkdirPerm == "" {
 		d.mkdirPerm = 0o777
 	} else {
@@ -134,7 +137,7 @@ func (d *Local) GetAddition() driver.Additional {
 
 func (d *Local) List(ctx context.Context, dir model.Obj, args model.ListArgs) ([]model.Obj, error) {
 	fullPath := dir.GetPath()
-	rawFiles, err := readDir(fullPath)
+	rawFiles, err := d.safeReadDir(fullPath)
 	if d.DirectorySize && args.Refresh {
 		d.directoryMap.RecalculateDirSize()
 	}
@@ -143,6 +146,9 @@ func (d *Local) List(ctx context.Context, dir model.Obj, args model.ListArgs) ([
 	}
 	var files []model.Obj
 	for _, f := range rawFiles {
+		if f.Mode()&os.ModeSymlink != 0 {
+			continue
+		}
 		if d.ShowHidden || !isHidden(f, fullPath) {
 			files = append(files, d.FileInfoToObj(ctx, f, args.ReqPath, fullPath))
 		}
@@ -196,14 +202,17 @@ func (d *Local) FileInfoToObj(ctx context.Context, f fs.FileInfo, reqPath string
 
 func (d *Local) Get(ctx context.Context, path string) (model.Obj, error) {
 	path = filepath.Join(d.GetRootPath(), path)
-	f, err := os.Stat(path)
+	f, err := d.safeStat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, errs.ObjectNotFound
 		}
 		return nil, err
 	}
-	isFolder := f.IsDir() || isSymlinkDir(f, path)
+	if !f.IsDir() && !f.Mode().IsRegular() {
+		return nil, fmt.Errorf("special files are disabled")
+	}
+	isFolder := f.IsDir()
 	size := f.Size()
 	if isFolder {
 		node, ok := d.directoryMap.Get(path)
@@ -213,13 +222,7 @@ func (d *Local) Get(ctx context.Context, path string) (model.Obj, error) {
 	} else {
 		size = f.Size()
 	}
-	var ctime time.Time
-	t, err := times.Stat(path)
-	if err == nil {
-		if t.HasBirthTime() {
-			ctime = t.BirthTime()
-		}
-	}
+	ctime := f.ModTime()
 	file := model.Object{
 		Path:     path,
 		Name:     f.Name(),
@@ -235,7 +238,7 @@ func (d *Local) Link(ctx context.Context, file model.Obj, args model.LinkArgs) (
 	fullPath := file.GetPath()
 	link := &model.Link{}
 	var MFile model.File
-	if args.Type == "thumb" && utils.Ext(file.GetName()) != "svg" {
+	if d.Thumbnail && args.Type == "thumb" && utils.Ext(file.GetName()) != "svg" {
 		var buf *bytes.Buffer
 		var thumbPath *string
 		err := d.thumbTokenBucket.Do(ctx, func() error {
@@ -267,7 +270,7 @@ func (d *Local) Link(ctx context.Context, file model.Obj, args model.LinkArgs) (
 			link.ContentLength = int64(buf.Len())
 		}
 	} else {
-		open, err := os.Open(fullPath)
+		open, err := d.safeOpen(fullPath)
 		if err != nil {
 			return nil, err
 		}
@@ -282,7 +285,7 @@ func (d *Local) Link(ctx context.Context, file model.Obj, args model.LinkArgs) (
 
 func (d *Local) MakeDir(ctx context.Context, parentDir model.Obj, dirName string) error {
 	fullPath := filepath.Join(parentDir.GetPath(), dirName)
-	err := os.MkdirAll(fullPath, os.FileMode(d.mkdirPerm))
+	err := d.safeMkdirAll(fullPath, os.FileMode(d.mkdirPerm))
 	if err != nil {
 		return err
 	}
@@ -295,7 +298,7 @@ func (d *Local) Move(ctx context.Context, srcObj, dstDir model.Obj) error {
 	if utils.IsSubPath(srcPath, dstPath) {
 		return fmt.Errorf("the destination folder is a subfolder of the source folder")
 	}
-	err := os.Rename(srcPath, dstPath)
+	err := d.safeRename(srcPath, dstPath)
 	if isCrossDeviceError(err) {
 		// 跨设备移动，变更为移动任务
 		return errs.NotImplement
@@ -318,7 +321,7 @@ func (d *Local) Move(ctx context.Context, srcObj, dstDir model.Obj) error {
 func (d *Local) Rename(ctx context.Context, srcObj model.Obj, newName string) error {
 	srcPath := srcObj.GetPath()
 	dstPath := filepath.Join(filepath.Dir(srcPath), newName)
-	err := os.Rename(srcPath, dstPath)
+	err := d.safeRename(srcPath, dstPath)
 	if err != nil {
 		return err
 	}
@@ -334,35 +337,17 @@ func (d *Local) Rename(ctx context.Context, srcObj model.Obj, newName string) er
 }
 
 func (d *Local) Copy(_ context.Context, srcObj, dstDir model.Obj) error {
-	srcPath := srcObj.GetPath()
-	dstPath := filepath.Join(dstDir.GetPath(), srcObj.GetName())
-	if utils.IsSubPath(srcPath, dstPath) {
-		return fmt.Errorf("the destination folder is a subfolder of the source folder")
-	}
-	info, err := os.Lstat(srcPath)
-	if err != nil {
-		return err
-	}
-	// 复制regular文件会返回errs.NotImplement, 转为复制任务
-	if err = d.tryCopy(srcPath, dstPath, info); err != nil {
-		return err
-	}
-
-	if d.directoryMap.Has(filepath.Dir(dstPath)) {
-		d.directoryMap.UpdateDirSize(filepath.Dir(dstPath))
-		d.directoryMap.UpdateDirParents(filepath.Dir(dstPath))
-	}
-
-	return nil
+	// The normal copy task uses the rooted Link, MakeDir and Put methods.
+	return errs.NotImplement
 }
 
 func (d *Local) Remove(ctx context.Context, obj model.Obj) error {
 	var err error
 	if utils.SliceContains([]string{"", "delete permanently"}, d.RecycleBinPath) {
 		if obj.IsDir() {
-			err = os.RemoveAll(obj.GetPath())
+			err = d.safeRemoveAll(obj.GetPath())
 		} else {
-			err = os.Remove(obj.GetPath())
+			err = d.safeRemove(obj.GetPath())
 		}
 	} else {
 		objPath := obj.GetPath()
@@ -374,7 +359,7 @@ func (d *Local) Remove(ctx context.Context, obj model.Obj) error {
 		}
 		recycleBinPath := filepath.Join(d.RecycleBinPath, relPath)
 		if !utils.Exists(recycleBinPath) {
-			err = os.MkdirAll(recycleBinPath, 0o755)
+			err = d.safeMkdirAll(recycleBinPath, 0o755)
 			if err != nil {
 				return err
 			}
@@ -384,7 +369,7 @@ func (d *Local) Remove(ctx context.Context, obj model.Obj) error {
 		if utils.Exists(dstPath) {
 			dstPath = filepath.Join(recycleBinPath, objName+"_"+time.Now().Format("20060102150405"))
 		}
-		err = os.Rename(objPath, dstPath)
+		err = d.safeRename(objPath, dstPath)
 	}
 	if err != nil {
 		return err
@@ -410,23 +395,19 @@ func (d *Local) Remove(ctx context.Context, obj model.Obj) error {
 
 func (d *Local) Put(ctx context.Context, dstDir model.Obj, stream model.FileStreamer, up driver.UpdateProgress) error {
 	fullPath := filepath.Join(dstDir.GetPath(), stream.GetName())
-	out, err := os.Create(fullPath)
+	out, err := d.safeCreate(fullPath)
 	if err != nil {
 		return err
 	}
 	defer func() {
 		_ = out.Close()
 		if errors.Is(err, context.Canceled) {
-			_ = os.Remove(fullPath)
+			_ = d.safeRemove(fullPath)
 		}
 	}()
 	err = utils.CopyWithCtx(ctx, out, stream, stream.GetSize(), up)
 	if err != nil {
 		return err
-	}
-	err = os.Chtimes(fullPath, stream.ModTime(), stream.ModTime())
-	if err != nil {
-		log.Errorf("[local] failed to change time of %s: %s", fullPath, err)
 	}
 	if d.directoryMap.Has(dstDir.GetPath()) {
 		d.directoryMap.UpdateDirSize(dstDir.GetPath())

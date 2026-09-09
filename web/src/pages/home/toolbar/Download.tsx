@@ -52,9 +52,6 @@ export const Download = () => {
             {t("home.toolbar.playlist_download")}
           </MenuItem>
         </Show>
-        <MenuItem colorScheme={colorScheme} onSelect={sendToAria2}>
-          {t("home.toolbar.send_aria2")}
-        </MenuItem>
       </MenuContent>
     </Menu>
   )

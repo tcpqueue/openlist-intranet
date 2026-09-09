@@ -43,6 +43,9 @@ with tempfile.TemporaryDirectory(prefix='intranet-test-') as temp:
     (data/'config.json').write_text(json.dumps({'scheme':{'address':'127.0.0.1','http_port':15244}}))
     (fixtures/'sample.txt').write_text('Local file roundtrip\n',encoding='utf8')
     (fixtures/'sample.md').write_text('# 内网验证\n\n$$E=mc^2$$\n\n```mermaid\ngraph LR\n A-->B\n```',encoding='utf8')
+    with (fixtures/'sample.md').open('a') as f: f.write('\n![external](https://external.example/probe.png)\n<script>window.__intranetXSS=1</script>\n')
+    outside=root/'outside';outside.mkdir();(outside/'secret').write_text('must stay private')
+    (fixtures/'escape').symlink_to(outside,target_is_directory=True)
     document=Document(); document.add_paragraph('DOCX 内网预览验证'); document.save(fixtures/'sample.docx')
     workbook=Workbook(); workbook.active.append(['XLSX 内网预览验证',42]); workbook.save(fixtures/'sample.xlsx')
     presentation=Presentation(); slide=presentation.slides.add_slide(presentation.slide_layouts[1]); slide.shapes.title.text='PPTX 内网预览验证'; slide.placeholders[1].text='Local presentation'; presentation.save(fixtures/'sample.pptx')
@@ -63,6 +66,17 @@ with tempfile.TemporaryDirectory(prefix='intranet-test-') as temp:
         login=api('/api/auth/login', {'username':'admin','password':'admin'})
         assert login['code']==200, 'Default admin login failed'
         result['api']['default_admin_login']=True
+        token=login['data']['token']
+        for credential in ['', 'not-a-valid-token', 'eyJhbGciOiJub25lIn0.eyJ1c2VybmFtZSI6ImFkbWluIn0.']:
+            assert api('/api/admin/storage/list',headers={'Authorization':credential})['code']!=200
+        master=api('/api/admin/setting/get?key=token')['data']
+        blank=dict(master);blank['value']=''
+        assert api('/api/admin/setting/save',[blank])['code']==200
+        assert api('/api/admin/storage/list',headers={'Authorization':''})['code']!=200
+        assert api('/api/authn/getcredentials',headers={'Authorization':''})['data']==[]
+        assert api('/api/admin/setting/save',[master])['code']==200
+        result['api']['invalid_and_empty_master_token_rejected']=True
+
         db=sqlite3.connect(data/'data.db'); token=db.execute("select value from x_setting_items where key='token'").fetchone()[0]; db.close()
         result['api']['settings']={k:settings['data'].get(k) for k in ['logo','favicon','audio_cover','iframe_previews','external_previews','ocr_api','sso_login_enabled','ldap_login_enabled']}
         names=api('/api/admin/driver/names')['data']; result['api']['drivers']=names
@@ -73,6 +87,12 @@ with tempfile.TemporaryDirectory(prefix='intranet-test-') as temp:
         bad=api('/api/admin/storage/create',{'mount_path':'/cloud','driver':'AliyundriveOpen','addition':'{}'})
         assert bad['code']!=200,bad
         result['api']['cloud_create_rejected']=True
+        for endpoint in ['https://external.example', 'http://8.8.8.8', 'http://169.254.169.254']:
+            forbidden=api('/api/admin/storage/create',{'mount_path':'/blocked','driver':'WebDav','addition':json.dumps({'address':endpoint})})
+            assert forbidden['code']!=200
+        assert not api('/api/public/offline_download_tools')['data']
+        result['api']['public_endpoints_and_offline_tools_blocked']=True
+
         saved=api('/api/admin/setting/save',[{'key':k,'value':v,'type':'string','group':4} for k,v in [('sso_login_enabled','true'),('ocr_api','https://external.example'),('iframe_previews','{"epub":{"cloud":"https://external.example"}}')]])
         assert saved['code']==200,saved
         for k,expected in [('sso_login_enabled','false'),('ocr_api',''),('iframe_previews','{}')]:
@@ -88,9 +108,18 @@ with tempfile.TemporaryDirectory(prefix='intranet-test-') as temp:
         info=api('/api/fs/get',{'path':'/uploaded.txt','password':''})
         with urllib.request.urlopen(info['data']['raw_url']) as r: assert r.read()==b'uploaded through API'
         result['api']['upload_download_roundtrip']=True
+        assert api('/api/fs/get',{'path':'/escape/secret','password':''})['code']!=200
+        assert api('/api/fs/put',b'bad',method='PUT',headers={'File-Path':quote('/escape/secret'),'As-Task':'false','Content-Type':'application/octet-stream'})['code']!=200
+        assert api('/api/fs/put',b'bad',method='PUT',headers={'File-Path':quote('/../traversal.txt'),'As-Task':'false','Content-Type':'application/octet-stream'})['code']!=200
+        assert (outside/'secret').read_text()=='must stay private'
+        assert not (fixtures/'traversal.txt').exists()
+        assert api('/api/fs/put',b'bad',method='PUT',headers={'Authorization':'','File-Path':'/unauthorized.txt','As-Task':'false','Content-Type':'application/octet-stream'})['code']!=200
+        assert not (fixtures/'unauthorized.txt').exists()
+        result['api']['file_boundary_and_upload_auth_enforced']=True
+
         with sync_playwright() as p:
             browser=p.chromium.launch(headless=True,args=['--no-sandbox','--disable-background-networking'])
-            paths=['/','/sample.txt','/sample.md','/chinese.pdf','/sample.docx','/sample.xlsx','/sample.pptx','/disabled.epub','/disabled.swf','/@manage/about','/@manage/storages']
+            paths=['/','/sample.txt','/sample.md','/chinese.pdf','/sample.docx','/sample.xlsx','/sample.pptx','/disabled.epub','/disabled.swf','/@manage/about','/@manage/storages','/@manage/settings/other']
             if args.smoke: paths=['/','/chinese.pdf']
             if args.only: paths=args.only.split(',')
             for route in paths:
@@ -104,9 +133,11 @@ with tempfile.TemporaryDirectory(prefix='intranet-test-') as temp:
                 page.on('console',lambda e:case['console'].append(e.text) if e.type in ['error','warning'] else None)
                 page.goto(base+route,wait_until='domcontentloaded',timeout=60000)
                 page.wait_for_timeout(7000 if route.endswith(('.pdf','.xlsx','.pptx')) else 3000)
+                assert page.evaluate('window.__intranetXSS') is None
                 case['text']=page.locator('body').inner_text()[:2500]
                 case['external']=sorted({u for u in case['requests'] if urlparse(u).scheme in ['https','http'] and urlparse(u).hostname!='127.0.0.1'})
                 result['cases'].append(case)
+                if route.endswith('/settings/other'): page.locator('input').evaluate_all("inputs => inputs.forEach(input => input.style.visibility = 'hidden')")
                 page.screenshot(path=str(out/('screen-'+route.strip('/').replace('/','-')+'.png')),full_page=True)
                 # Inspect local library loading in addition to file content, including shadow DOM PPT.
                 for ext,label in [('.docx','DOCX 内网预览验证'),('.xlsx','XLSX 内网预览验证'),('.pptx','PPTX 内网预览验证')]:
@@ -116,6 +147,10 @@ with tempfile.TemporaryDirectory(prefix='intranet-test-') as temp:
             browser.close()
         assert all(not c['external'] for c in result['cases']), 'External requests observed'
         assert all(not c['http_errors'] for c in result['cases']), 'Resource HTTP errors observed'
+        for i in range(6):
+            reply=api('/api/auth/login',{'username':'admin','password':'wrong'},headers={'X-Forwarded-For':f'10.0.0.{i+1}','X-Real-IP':f'10.0.0.{i+1}'})
+        assert reply['code']==429,reply
+        result['api']['spoofed_forward_headers_do_not_bypass_login_limit']=True
         result['passed']=True
     finally:
         encoded = json.dumps(result, ensure_ascii=False, indent=2)

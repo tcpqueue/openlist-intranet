@@ -182,16 +182,13 @@ async function renderMarkdown(
 
   processor.use(remarkRehype, { allowDangerousHtml: true }).use(rehypeRaw)
 
-  if (sanitize)
-    processor.use(rehypeSanitize, {
-      ...defaultSchema,
-      attributes: {
-        ...defaultSchema.attributes,
-        code: [
-          ["className", /^language-[\w-]+$/, "math-inline", "math-display"],
-        ],
-      },
-    })
+  processor.use(rehypeSanitize, {
+    ...defaultSchema,
+    attributes: {
+      ...defaultSchema.attributes,
+      code: [["className", /^language-[\w-]+$/, "math-inline", "math-display"]],
+    },
+  })
 
   if (hasMath) {
     const { default: rehypeKatex } = await import("rehype-katex")
@@ -202,7 +199,25 @@ async function renderMarkdown(
 
   const result = await processor.process(content)
 
-  return { html: String(result), hasMermaid }
+  const template = document.createElement("template")
+  template.innerHTML = String(result)
+  for (const node of template.content.querySelectorAll(
+    "[src],[href],[poster],[srcset]",
+  )) {
+    for (const attr of ["src", "href", "poster"]) {
+      const value = node.getAttribute(attr)
+      if (value && !value.startsWith("data:") && !value.startsWith("blob:")) {
+        try {
+          if (new URL(value, location.href).origin !== location.origin)
+            node.removeAttribute(attr)
+        } catch {
+          node.removeAttribute(attr)
+        }
+      }
+    }
+    node.removeAttribute("srcset")
+  }
+  return { html: template.innerHTML, hasMermaid }
 }
 
 export function Markdown(props: {

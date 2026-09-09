@@ -25,6 +25,7 @@ func TestRemoveDeletesThumbCache(t *testing.T) {
 			ThumbCacheFolder: cacheDir,
 		},
 	}
+	driver.RootFolderPath = root
 	thumbPath := driver.thumbCachePath(filePath)
 	if err := os.WriteFile(thumbPath, []byte("thumb"), 0o666); err != nil {
 		t.Fatal(err)

@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 Type=simple
-User=openlist-intranet
-Group=openlist-intranet
+User=root
+Group=root
 WorkingDirectory=/var/lib/openlist-intranet
 ExecStart=/usr/bin/openlist-intranet server --data /var/lib/openlist-intranet
 Restart=on-failure

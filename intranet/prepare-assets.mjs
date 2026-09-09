@@ -17,7 +17,6 @@ await fs.mkdir(cache, {recursive:true})
 await fs.mkdir(vendor, {recursive:true})
 const sources = {
   resource: 'https://codeload.github.com/OpenListTeam/OpenList-Resource/tar.gz/950daec45ec423851e172f6296a8fbeeddd0f703',
-  jszip2: 'https://registry.npmjs.org/jszip/-/jszip-2.6.1.tgz',
   jszip3: 'https://registry.npmjs.org/jszip/-/jszip-3.10.1.tgz',
   i18n: 'https://github.com/OpenListTeam/OpenList-Frontend/releases/download/v4.2.6/i18n.tar.gz',
 }
@@ -42,7 +41,7 @@ for(const name of ['logo','ppt.js','exceljs']) await copy(path.join(resource,nam
 await copy(path.join(resource,'docxjs/dist'),path.join(vendor,'docxjs/dist'))
 await copy(path.join(resource,'docxjs/LICENSE'),path.join(vendor,'docxjs/LICENSE'))
 await copy(path.join(resource,'LICENSE'),path.join(vendor,'RESOURCE-LICENSE'))
-for(const [name,version] of [['jszip2','2.6.1'],['jszip3','3.10.1']]) {
+for(const [name,version] of [['jszip3','3.10.1']]) {
   const src=path.join(await unpack(name,sources[name]),'package')
   await copy(path.join(src,'dist/jszip.min.js'),path.join(vendor,'npm/jszip',version,'dist/jszip.min.js'))
   for(const file of await fs.readdir(src)) if(/license/i.test(file)) await copy(path.join(src,file),path.join(vendor,'npm/jszip',version,file))
@@ -59,6 +58,36 @@ await copy(zh,path.join(web,'src/lang/zh-CN'))
 await copy(path.join(web,'src/lang/en/entry.ts'),path.join(web,'src/lang/zh-CN/entry.ts'))
 
 const require=createRequire(path.join(web,'package.json'))
+// Upgrade the legacy PPT renderer's ZIP and HTML handling before bundling.
+await fs.rm(path.join(vendor,'npm/jszip/2.6.1'),{recursive:true,force:true})
+await fs.rm(path.join(vendor,'ppt.js/js/jquery-1.11.3.min.js'),{force:true})
+const jqueryDir=path.dirname(require.resolve('jquery/package.json'))
+await copy(path.join(jqueryDir,'dist/jquery.min.js'),path.join(vendor,'ppt.js/js/jquery.min.js'))
+await copy(path.join(jqueryDir,'LICENSE.txt'),path.join(vendor,'ppt.js/JQUERY-LICENSE'))
+const purifyPath=require.resolve('dompurify')
+await copy(path.join(path.dirname(purifyPath),'purify.min.js'),path.join(vendor,'ppt.js/js/purify.min.js'))
+await copy(path.join(path.dirname(purifyPath),'../LICENSE'),path.join(vendor,'ppt.js/DOMPURIFY-LICENSE'))
+const pptPath=path.join(vendor,'ppt.js/js/pptxjs.js')
+let ppt=await fs.readFile(pptPath,'utf8')
+function patchPpt(before,after) {if(!ppt.includes(before)) throw new Error('PPT patch does not match upstream');ppt=ppt.replace(before,after)}
+patchPpt('function convertToHtml(file) {','async function convertToHtml(file) {')
+patchPpt('zip = zip.load(file);', `if (file.byteLength > 50*1024*1024) throw new Error("PPTX exceeds 50 MiB");
+            zip = await JSZip.loadAsync(file);
+            const entries=Object.values(zip.files);
+            if(entries.length>5000) throw new Error("Too many PPTX ZIP entries");
+            let expanded=0;
+            for(const entry of entries) {
+                if(entry.dir) continue;
+                expanded+=entry._data.uncompressedSize;
+                if(expanded>256*1024*1024) throw new Error("Expanded PPTX exceeds 256 MiB");
+                const bytes=await entry.async('arraybuffer');
+                entry.asArrayBuffer=()=>bytes;
+                entry.asText=()=>new TextDecoder().decode(bytes);
+            }`)
+patchPpt('$result.append(rslt_ary[i]["data"]);','$result.append(DOMPurify.sanitize(rslt_ary[i]["data"]));')
+patchPpt('$result.append("<style>" + rslt_ary[i]["data"] + "</style>");','const safeStyle=document.createElement("style"); safeStyle.textContent=rslt_ary[i]["data"]; $result.append(safeStyle);')
+await fs.writeFile(pptPath,ppt)
+
 const excelDir=path.dirname(require.resolve('exceljs/package.json'))
 await copy(path.join(excelDir,'dist/exceljs.min.js'),path.join(vendor,'exceljs/exceljs.min.js'))
 await copy(path.join(excelDir,'LICENSE'),path.join(vendor,'exceljs/LICENSE'))

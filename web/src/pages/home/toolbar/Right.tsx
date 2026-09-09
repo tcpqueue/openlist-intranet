@@ -147,23 +147,6 @@ export const Right = () => {
                 }}
               />
             </Show>
-            <Show
-              when={
-                isFolder() &&
-                !isShare() &&
-                userCan("offline_download") &&
-                objStore.write
-              }
-            >
-              <RightIcon
-                as={IoMagnetOutline}
-                pl="0"
-                tips="offline_download"
-                onClick={() => {
-                  bus.emit("tool", "offline_download")
-                }}
-              />
-            </Show>
             <Show when={isTocVisible()}>
               <RightIcon
                 as={BiSolidBookContent}

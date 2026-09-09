@@ -2,6 +2,7 @@ package webdav
 
 import (
 	"crypto/tls"
+	intranetnet "github.com/OpenListTeam/OpenList/v4/internal/net"
 	"net/http"
 	"net/http/cookiejar"
 
@@ -19,7 +20,8 @@ func (d *WebDav) isSharepoint() bool {
 func (d *WebDav) setClient() error {
 	c := gowebdav.NewClient(d.Address, d.Username, d.Password)
 	c.SetTransport(&http.Transport{
-		Proxy:           http.ProxyFromEnvironment,
+		DialContext:     intranetnet.IntranetDialContext,
+		Proxy:           nil,
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: d.TlsInsecureSkipVerify},
 	})
 	if d.isSharepoint() {

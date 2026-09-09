@@ -53,12 +53,6 @@ export interface PreviewComponent {
 
 const previews: Preview[] = [
   {
-    key: "html",
-    exts: ["html"],
-    component: lazy(() => import("./html")),
-    prior: true,
-  },
-  {
     key: "markdown",
     type: ObjType.TEXT,
     component: lazy(() => import("./markdown")),
@@ -68,12 +62,6 @@ const previews: Preview[] = [
     key: "markdown_with_word_wrap",
     type: ObjType.TEXT,
     component: lazy(() => import("./markdown_with_word_wrap")),
-    prior: true,
-  },
-  {
-    key: "url_open",
-    exts: ["url"],
-    component: lazy(() => import("./url")),
     prior: true,
   },
   {
@@ -154,12 +142,6 @@ const previews: Preview[] = [
     key: "video360",
     type: ObjType.VIDEO,
     component: lazy(() => import("./video360")),
-    prior: true,
-  },
-  {
-    key: "torrent",
-    exts: ["torrent"],
-    component: lazy(() => import("./torrent")),
     prior: true,
   },
   {

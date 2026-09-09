@@ -302,15 +302,12 @@ type safeTransport struct {
 }
 
 func (t *safeTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	host := req.URL.Hostname()
-	addrs, err := gonet.DefaultResolver.LookupIPAddr(req.Context(), host)
-	if err != nil || len(addrs) == 0 {
-		return nil, errors.Wrapf(err, "failed to resolve host: %s", host)
+	if err := ValidateIntranetAddress(req.URL.String()); err != nil {
+		return nil, err
 	}
-	for _, addr := range addrs {
-		if isCloudMetadataIP(addr.IP) {
-			return nil, ErrCloudMetadataEndpoint
-		}
+	host := req.URL.Hostname()
+	if isCloudMetadataIP(gonet.ParseIP(host)) {
+		return nil, ErrCloudMetadataEndpoint
 	}
 	return t.base.RoundTrip(req)
 }

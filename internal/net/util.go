@@ -5,11 +5,9 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
-	"net/url"
 	"strings"
 	"time"
 
-	"github.com/OpenListTeam/OpenList/v4/internal/conf"
 	"github.com/OpenListTeam/OpenList/v4/pkg/utils"
 	"github.com/rclone/rclone/lib/readers"
 
@@ -325,20 +323,9 @@ func GetRangedHttpReader(readCloser io.ReadCloser, offset, length int64) (io.Rea
 
 // SetProxyIfConfigured sets proxy for HTTP Transport if configured
 func SetProxyIfConfigured(transport *http.Transport) {
-	// If proxy address is configured, override environment variable settings
-	if conf.Conf.ProxyAddress != "" {
-		if proxyURL, err := url.Parse(conf.Conf.ProxyAddress); err == nil {
-			transport.Proxy = http.ProxyURL(proxyURL)
-		}
-	}
+	RestrictTransport(transport)
 }
 
-// SetRestyProxyIfConfigured sets proxy for Resty client if configured
 func SetRestyProxyIfConfigured(client *resty.Client) {
-	// If proxy address is configured, override environment variable settings
-	if conf.Conf.ProxyAddress != "" {
-		if proxyURL, err := url.Parse(conf.Conf.ProxyAddress); err == nil {
-			client.SetProxy(proxyURL.String())
-		}
-	}
+	RestrictTransport(client.GetClient().Transport.(*http.Transport))
 }

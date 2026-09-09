@@ -6,11 +6,12 @@ import (
 )
 
 type Addition struct {
-	Address    string `json:"address" required:"true"`
-	Username   string `json:"username" required:"true"`
-	PrivateKey string `json:"private_key" type:"text"`
-	Password   string `json:"password"`
-	Passphrase string `json:"passphrase"`
+	HostKeyFingerprint string `json:"host_key_fingerprint" required:"true" help:"Expected SHA256 SSH host-key fingerprint, verified on the server"`
+	Address            string `json:"address" required:"true"`
+	Username           string `json:"username" required:"true"`
+	PrivateKey         string `json:"private_key" type:"text"`
+	Password           string `json:"password"`
+	Passphrase         string `json:"passphrase"`
 	driver.RootPath
 	IgnoreSymlinkError bool `json:"ignore_symlink_error" default:"false" info:"Ignore symlink error"`
 }

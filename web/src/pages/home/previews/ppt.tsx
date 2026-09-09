@@ -53,16 +53,11 @@ const PPTViewerApp = () => {
 
       // 按顺序加载JS文件
       await loadScriptIIFE(
-        `${baseUrl}/js/jquery-1.11.3.min.js`,
+        `${baseUrl}/js/jquery.min.js`,
         "jquery-script",
       )
-      // 使用JSZip 2.x版本，不支持3.x
-      // 加载前清理其他版本的 jszip，避免全局变量冲突
-      document.getElementById("jszip-3.10.1-script")?.remove()
-      await loadScriptIIFE(
-        npm("jszip", "2.6.1", "dist/jszip.min.js"),
-        "jszip-2.6.1-script",
-      )
+      await loadScriptIIFE(npm("jszip", "3.10.1", "dist/jszip.min.js"), "jszip-3.10.1-script")
+      await loadScriptIIFE(`${baseUrl}/js/purify.min.js`, "ppt-purify-script")
       await loadScriptIIFE(`${baseUrl}/js/filereader.js`, "filereader-script")
       await loadScriptIIFE(`${baseUrl}/js/d3.min.js`, "d3-script")
       await loadScriptIIFE(`${baseUrl}/js/nv.d3.min.js`, "nv-d3-script")

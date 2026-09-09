@@ -25,6 +25,7 @@ func FsUp(c *gin.Context) {
 	path, err = user.JoinPath(path)
 	if err != nil {
 		common.ErrorResp(c, err, 403)
+		c.Abort()
 		return
 	}
 	parentPath := stdpath.Dir(path)

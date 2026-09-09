@@ -1,260 +1,30 @@
-import {
-  Button,
-  FormControl,
-  FormLabel,
-  Heading,
-  HStack,
-  Input,
-  SimpleGrid,
-} from "@hope-ui/solid"
-import { createSignal } from "solid-js"
-import { FolderChooseInput, MaybeLoading } from "~/components"
-import { useFetch, useManageTitle, useT, useUtil } from "~/hooks"
-import { Group, SettingItem, PResp } from "~/types"
-import { handleResp, notify, r } from "~/utils"
-import { Item } from "./SettingItem"
-
-const OtherSettings = () => {
-  const t = useT()
-  useManageTitle("manage.sidemenu.other")
-  const [uri, setUri] = createSignal("")
-  const [secret, setSecret] = createSignal("")
-  const [qbitUrl, setQbitUrl] = createSignal("")
-  const [pan123TempDir, set123TempDir] = createSignal("")
-  const [qbitSeedTime, setQbitSeedTime] = createSignal("")
-  const [transmissionUrl, setTransmissionUrl] = createSignal("")
-  const [transmissionSeedTime, setTransmissionSeedTime] = createSignal("")
-  const [pan115TempDir, set115TempDir] = createSignal("")
-  const [pan115OpenTempDir, set115OpenTempDir] = createSignal("")
-  const [pan123OpenTempDir, set123OpenTempDir] = createSignal("")
-  const [pan123OpenCallbackUrl, set123OpenCallbackUrl] = createSignal("")
-  const [pikpakTempDir, setPikPakTempDir] = createSignal("")
-  const [thunderTempDir, setThunderTempDir] = createSignal("")
-  const [thunderBrowserTempDir, setThunderBrowserTempDir] = createSignal("")
-  const [thunderXTempDir, setThunderXTempDir] = createSignal("")
-  const [guangYaPanTempDir, setGuangYaPanTempDir] = createSignal("")
+import { Button, HStack, Input, VStack } from "@hope-ui/solid"
+import { createSignal, onMount } from "solid-js"
+import { Resp, SettingItem } from "~/types"
+import { handleResp, r } from "~/utils"
+export default function OtherSettings() {
   const [token, setToken] = createSignal("")
-  const [settings, setSettings] = createSignal<SettingItem[]>([])
-  const [settingsLoading, settingsData] = useFetch((): PResp<SettingItem[]> =>
-    r.get(`/admin/setting/list?groups=${Group.ARIA2},${Group.SINGLE}`),
-  )
-  const [setAria2Loading, setAria2] = useFetch((): PResp<string> =>
-    r.post("/admin/setting/set_aria2", { uri: uri(), secret: secret() }),
-  )
-  const [setQbitLoading, setQbit] = useFetch((): PResp<string> =>
-    r.post("/admin/setting/set_qbit", {
-      url: qbitUrl(),
-      seedtime: qbitSeedTime(),
-    }),
-  )
-  const [setTransmissionLoading, setTransmission] = useFetch(
-    (): PResp<string> =>
-      r.post("/admin/setting/set_transmission", {
-        uri: transmissionUrl(),
-        seedtime: transmissionSeedTime(),
-      }),
-  )
-  const [set123PanLoading, set123Pan] = useFetch((): PResp<string> =>
-    r.post("/admin/setting/set_123_pan", {
-      temp_dir: pan123TempDir(),
-    }),
-  )
-  const [set115Loading, set115] = useFetch((): PResp<string> =>
-    r.post("/admin/setting/set_115", {
-      temp_dir: pan115TempDir(),
-    }),
-  )
-  const [set115OpenLoading, set115Open] = useFetch((): PResp<string> =>
-    r.post("/admin/setting/set_115_open", {
-      temp_dir: pan115OpenTempDir(),
-    }),
-  )
-  const [set123OpenLoading, set123Open] = useFetch((): PResp<string> =>
-    r.post("/admin/setting/set_123_open", {
-      temp_dir: pan123OpenTempDir(),
-      callback_url: pan123OpenCallbackUrl(),
-    }),
-  )
-  const [setPikPakLoading, setPikPak] = useFetch((): PResp<string> =>
-    r.post("/admin/setting/set_pikpak", {
-      temp_dir: pikpakTempDir(),
-    }),
-  )
-  const [setThunderLoading, setThunder] = useFetch((): PResp<string> =>
-    r.post("/admin/setting/set_thunder", {
-      temp_dir: thunderTempDir(),
-    }),
-  )
-  const [setThunderXLoading, setThunderX] = useFetch((): PResp<string> =>
-    r.post("/admin/setting/set_thunderx", {
-      temp_dir: thunderXTempDir(),
-    }),
-  )
-  const [setThunderBrowserLoading, setThunderBrowser] = useFetch(
-    (): PResp<string> =>
-      r.post("/admin/setting/set_thunder_browser", {
-        temp_dir: thunderBrowserTempDir(),
-      }),
-  )
-  const [setGuangYaPanLoading, setGuangYaPan] = useFetch((): PResp<string> =>
-    r.post("/admin/setting/set_guangyapan", {
-      temp_dir: guangYaPanTempDir(),
-    }),
-  )
-  const refresh = async () => {
-    const resp = await settingsData()
-    handleResp(resp, (data) => {
-      setUri(data.find((i) => i.key === "aria2_uri")?.value || "")
-      setSecret(data.find((i) => i.key === "aria2_secret")?.value || "")
-      setToken(data.find((i) => i.key === "token")?.value || "")
-      setQbitUrl(data.find((i) => i.key === "qbittorrent_url")?.value || "")
-      set123TempDir(data.find((i) => i.key === "123_pan_temp_dir")?.value || "")
-      setQbitSeedTime(
-        data.find((i) => i.key === "qbittorrent_seedtime")?.value || "",
-      )
-      setTransmissionUrl(
-        data.find((i) => i.key === "transmission_uri")?.value || "",
-      )
-      setTransmissionSeedTime(
-        data.find((i) => i.key === "transmission_seedtime")?.value || "",
-      )
-      set115TempDir(data.find((i) => i.key === "115_temp_dir")?.value || "")
-      set115OpenTempDir(
-        data.find((i) => i.key === "115_open_temp_dir")?.value || "",
-      )
-      set123OpenTempDir(
-        data.find((i) => i.key == "123_open_temp_dir")?.value || "",
-      )
-      set123OpenCallbackUrl(
-        data.find((i) => i.key === "123_open_callback_url")?.value || "",
-      )
-      setPikPakTempDir(
-        data.find((i) => i.key === "pikpak_temp_dir")?.value || "",
-      )
-      setThunderTempDir(
-        data.find((i) => i.key === "thunder_temp_dir")?.value || "",
-      )
-      setThunderXTempDir(
-        data.find((i) => i.key === "thunderx_temp_dir")?.value || "",
-      )
-      setThunderBrowserTempDir(
-        data.find((i) => i.key === "thunder_browser_temp_dir")?.value || "",
-      )
-      setGuangYaPanTempDir(
-        data.find((i) => i.key === "guangyapan_temp_dir")?.value || "",
-      )
-      setSettings(data)
-    })
-  }
-  refresh()
-  const [resetTokenLoading, resetToken] = useFetch((): PResp<string> =>
-    r.post("/admin/setting/reset_token"),
-  )
-  const { copy } = useUtil()
-
+  onMount(async () => {
+    const response = (await r.get(
+      "/admin/setting/get?key=token",
+    )) as unknown as Resp<SettingItem>
+    handleResp(response, (data: any) => setToken(data.value))
+  })
   return (
-    <MaybeLoading loading={settingsLoading()}>
-      <Heading mb="$2">{t("settings_other.aria2")}</Heading>
-      <SimpleGrid gap="$2" columns={{ "@initial": 1, "@md": 2 }}>
-        <Item
-          {...settings().find((i) => i.key === "aria2_uri")!}
-          value={uri()}
-          onChange={(str) => setUri(str)}
-        />
-        <Item
-          {...settings().find((i) => i.key === "aria2_secret")!}
-          value={secret()}
-          onChange={(str) => setSecret(str)}
-        />
-      </SimpleGrid>
-      <Button
-        my="$2"
-        loading={setAria2Loading()}
-        onClick={async () => {
-          const resp = await setAria2()
-          handleResp(resp, (data) => {
-            notify.success(`${t("settings_other.aria2_version")} ${data}`)
-          })
-        }}
-      >
-        {t("global.save")}
-      </Button>
-      <Heading my="$2">{t("settings_other.qbittorrent")}</Heading>
-      <SimpleGrid gap="$2" columns={{ "@initial": 1, "@md": 2 }}>
-        <Item
-          {...settings().find((i) => i.key === "qbittorrent_url")!}
-          value={qbitUrl()}
-          onChange={(str) => setQbitUrl(str)}
-        />
-        <Item
-          {...settings().find((i) => i.key === "qbittorrent_seedtime")!}
-          value={qbitSeedTime()}
-          onChange={(str) => setQbitSeedTime(str)}
-        />
-      </SimpleGrid>
-      <Button
-        my="$2"
-        loading={setQbitLoading()}
-        onClick={async () => {
-          const resp = await setQbit()
-          handleResp(resp, (data) => {
-            notify.success(data)
-          })
-        }}
-      >
-        {t("global.save")}
-      </Button>
-      <Heading my="$2">{t("settings_other.transmission")}</Heading>
-      <SimpleGrid gap="$2" columns={{ "@initial": 1, "@md": 2 }}>
-        <Item
-          {...settings().find((i) => i.key === "transmission_uri")!}
-          value={transmissionUrl()}
-          onChange={(str) => setTransmissionUrl(str)}
-        />
-        <Item
-          {...settings().find((i) => i.key === "transmission_seedtime")!}
-          value={transmissionSeedTime()}
-          onChange={(str) => setTransmissionSeedTime(str)}
-        />
-      </SimpleGrid>
-      <Button
-        my="$2"
-        loading={setTransmissionLoading()}
-        onClick={async () => {
-          const resp = await setTransmission()
-          handleResp(resp, (data) => {
-            notify.success(data)
-          })
-        }}
-      >
-        {t("global.save")}
-      </Button>
-      <Heading my="$2">{t("settings.token")}</Heading>
+    <VStack alignItems="start">
       <Input value={token()} readOnly />
-      <HStack my="$2" spacing="$2">
+      <HStack>
         <Button
-          onClick={() => {
-            copy(token())
-          }}
-        >
-          {t("settings_other.copy_token")}
-        </Button>
-        <Button
-          colorScheme="danger"
-          loading={resetTokenLoading()}
           onClick={async () => {
-            const resp = await resetToken()
-            handleResp(resp, (data) => {
-              notify.success(t("settings_other.reset_token_success"))
-              setToken(data)
-            })
+            const response = (await r.post(
+              "/admin/setting/reset_token",
+            )) as unknown as Resp<string>
+            handleResp(response, (data: string) => setToken(data))
           }}
         >
-          {t("settings_other.reset_token")}
+          重置访问令牌
         </Button>
       </HStack>
-    </MaybeLoading>
+    </VStack>
   )
 }
-
-export default OtherSettings

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-version="${VERSION:-4.2.6+intranet1}"
+version="${VERSION:-4.2.6+intranet3}"
 arch="${ARCH:-arm64}"
 case "$arch" in arm64|amd64) ;; *) echo "Unsupported architecture: $arch" >&2; exit 1;; esac
 test -f public/dist/index.html || { echo 'Build the frontend and copy web/dist to public/dist first.' >&2; exit 1; }
@@ -35,7 +35,7 @@ Priority: optional
 Architecture: ${arch}
 Maintainer: tcpqueue <44940833+tcpqueue@users.noreply.github.com>
 Installed-Size: ${size}
-Depends: passwd, systemd
+Depends: systemd
 Homepage: https://github.com/tcpqueue/openlist-intranet
 Description: OpenList file server with locally hosted preview resources
  Includes local Office preview libraries and PDF fonts.

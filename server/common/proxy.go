@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"strings"
 
-	"maps"
-
 	"github.com/OpenListTeam/OpenList/v4/internal/conf"
 	"github.com/OpenListTeam/OpenList/v4/internal/model"
 	"github.com/OpenListTeam/OpenList/v4/internal/net"
@@ -58,7 +56,13 @@ func Proxy(w http.ResponseWriter, r *http.Request, link *model.Link, file model.
 	}
 	defer res.Body.Close()
 
-	maps.Copy(w.Header(), res.Header)
+	// Preserve local security headers and do not accept upstream cookies.
+	for key, values := range res.Header {
+		switch strings.ToLower(key) {
+		case "content-type", "content-length", "content-range", "accept-ranges", "etag", "last-modified", "content-encoding":
+			w.Header()[key] = values
+		}
+	}
 	w.Header().Set("Content-Disposition", utils.GenerateContentDisposition(file.GetName()))
 	w.WriteHeader(res.StatusCode)
 	if r.Method == http.MethodHead {

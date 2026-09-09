@@ -8,5 +8,5 @@ case "$1" in
         fi
         ;;
 esac
-# Keep /var/lib/openlist-intranet and its service account on removal/purge.
+# Keep /var/lib/openlist-intranet on removal/purge.
 # Administrators can explicitly archive or delete their files afterwards.

@@ -8,7 +8,7 @@ import (
 	"github.com/OpenListTeam/OpenList/v4/internal/conf"
 )
 
-func TestNewOSSClientUsesEnvironmentHTTPSProxy(t *testing.T) {
+func TestNewOSSClientRejectsExternalProxy(t *testing.T) {
 	oldConf := conf.Conf
 	conf.Conf = conf.DefaultConfig("data")
 	defer func() {
@@ -31,24 +31,16 @@ func TestNewOSSClientUsesEnvironmentHTTPSProxy(t *testing.T) {
 		t.Fatal("expected OSS client to use a custom HTTP client")
 	}
 
-	transport, ok := client.HTTPClient.Transport.(*http.Transport)
+	transport, ok := client.HTTPClient.Transport.(*safeTransport)
 	if !ok {
-		t.Fatalf("expected *http.Transport, got %T", client.HTTPClient.Transport)
+		t.Fatalf("expected guarded transport, got %T", client.HTTPClient.Transport)
 	}
-
-	if transport.Proxy == nil {
-		t.Fatal("expected proxy function to be configured")
+	base, ok := transport.base.(*http.Transport)
+	if !ok || base.Proxy != nil {
+		t.Fatal("proxy must be disabled")
 	}
-
 	req := &http.Request{URL: &url.URL{Scheme: "https", Host: "oss-cn-hangzhou.aliyuncs.com"}}
-	proxyURL, err := transport.Proxy(req)
-	if err != nil {
-		t.Fatalf("expected no proxy lookup error, got %v", err)
-	}
-	if proxyURL == nil {
-		t.Fatal("expected HTTPS proxy to be used")
-	}
-	if got, want := proxyURL.String(), "http://127.0.0.1:7890"; got != want {
-		t.Fatalf("expected proxy %q, got %q", want, got)
+	if _, err := transport.RoundTrip(req); err == nil {
+		t.Fatal("external OSS must be rejected")
 	}
 }

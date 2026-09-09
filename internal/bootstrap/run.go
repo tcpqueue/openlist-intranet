@@ -15,6 +15,7 @@ import (
 	"github.com/OpenListTeam/OpenList/v4/internal/conf"
 	"github.com/OpenListTeam/OpenList/v4/internal/db"
 	"github.com/OpenListTeam/OpenList/v4/internal/fs"
+	intranetnet "github.com/OpenListTeam/OpenList/v4/internal/net"
 	"github.com/OpenListTeam/OpenList/v4/pkg/utils"
 	"github.com/OpenListTeam/OpenList/v4/server"
 	"github.com/OpenListTeam/OpenList/v4/server/middlewares"
@@ -31,6 +32,12 @@ import (
 
 func Init() {
 	InitConfig()
+	intranetnet.InitIntranetHTTP()
+	conf.Conf.Cdn = ""
+	conf.Conf.ProxyAddress = ""
+	if conf.Conf.Database.Type != "sqlite3" && conf.Conf.Database.Type != "" {
+		log.Fatal("Intranet edition requires the local SQLite database")
+	}
 	Log()
 	InitDB()
 	data.InitData()
