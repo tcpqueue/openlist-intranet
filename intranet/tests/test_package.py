@@ -1,6 +1,6 @@
 from pathlib import Path
 import os,subprocess,tempfile,json
-root=Path.home()/'projects/openlist-intranet-audit/intranet'
+root=Path(__file__).resolve().parents[2]
 unit=(root/'intranet/openlist-intranet.service').read_text()
 assert 'User=root\n' in unit and 'Group=root\n' in unit
 assert 'WantedBy=multi-user.target' in unit
@@ -20,5 +20,6 @@ with tempfile.TemporaryDirectory(prefix='package-test-') as folder:
     for expected in ['systemctl daemon-reload','systemctl enable openlist-intranet.service','deb-systemd-invoke restart openlist-intranet.service','deb-systemd-invoke stop openlist-intranet.service','systemctl disable openlist-intranet.service']:
         assert expected in calls,expected
 result={'root_service':True,'shell_syntax':True,'install_enable_restart':True,'remove_stop_disable':True,'scope':'Maintainer scripts executed with stub commands and temporary paths; not an actual Kylin systemd installation.'}
-(root.parent/'work/v3-package-tests.json').write_text(json.dumps(result,indent=2)+'\n')
+(root/'.build').mkdir(exist_ok=True)
+(root/'.build/package-tests.json').write_text(json.dumps(result,indent=2)+'\n')
 print('PASS: root service and package lifecycle scripts')
