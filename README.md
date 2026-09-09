@@ -5,7 +5,7 @@
 ## 安装与访问
 
 ```sh
-sudo dpkg -i openlist-intranet_4.2.6+intranet4_arm64.deb
+sudo dpkg -i openlist-intranet_4.2.6+intranet5_arm64.deb
 sudo systemctl status openlist-intranet --no-pager
 ```
 

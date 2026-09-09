@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-version="${VERSION:-4.2.6+intranet4}"
+version="${VERSION:-4.2.6+intranet5}"
 arch="${ARCH:-arm64}"
 case "$arch" in arm64|amd64) ;; *) echo "Unsupported architecture: $arch" >&2; exit 1;; esac
 test -f public/dist/index.html || { echo 'Build the frontend and copy web/dist to public/dist first.' >&2; exit 1; }

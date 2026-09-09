@@ -16,6 +16,19 @@ const puppeteer = require(process.env.INTRANET_PUPPETEER);
     login.on('pageerror',e=>result.errors.push(String(e)));
     await login.evaluateOnNewDocument(function(){localStorage.clear();localStorage.setItem('lang','zh-CN');});
     await login.goto(process.env.INTRANET_TEST_BASE+'/@login',{waitUntil:'networkidle0'});
+    for (const width of [360, 640, 1024, 1280]) {
+      await login.setViewport({width,height:800});
+      await login.waitFor(100);
+      const contained=await login.evaluate(()=>{
+        const card=document.querySelector('.login-card').getBoundingClientRect();
+        return Array.from(document.querySelectorAll('.login-actions button')).every(button=>{
+          const rect=button.getBoundingClientRect();
+          return rect.left>=card.left && rect.right<=card.right && rect.width>80;
+        });
+      });
+      if(!contained) throw new Error('Login buttons overflow at '+width);
+      await login.screenshot({path:path.join(process.env.INTRANET_TEST_OUT,'old-login-'+width+'.png'),fullPage:true});
+    }
     await login.type('input[name=username]','admin');
     await login.type('input[name=password]','admin');
     await login.evaluate(()=>Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()==='登录').click());

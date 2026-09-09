@@ -82,3 +82,12 @@
 .storage-layout-switch {
   white-space: nowrap;
 }
+
+.login-actions > button {
+  width: 0;
+  min-width: 0;
+  flex: 1 1 0;
+}
+.login-actions > button + button {
+  margin-left: 8px;
+}

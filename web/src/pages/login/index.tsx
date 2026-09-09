@@ -227,6 +227,7 @@ const Login = () => {
   return (
     <Center zIndex="$docked" w="$full" h="100vh">
       <VStack
+        class="login-card"
         bgColor={bgColor()}
         rounded="$xl"
         p="24px"
@@ -300,11 +301,12 @@ const Login = () => {
             </Text>
           </Flex>
         </Show>
-        <HStack w="$full" spacing="$2">
+        <HStack class="login-actions" w="$full" spacing="$2">
           <Show when={!useauthn()}>
             <Button
               colorScheme="primary"
-              w="$full"
+              flex="1 1 0"
+              minW="0"
               onClick={() => {
                 if (needOpt()) {
                   setOpt("")
@@ -317,7 +319,7 @@ const Login = () => {
               {t("login.clear")}
             </Button>
           </Show>
-          <Button w="$full" loading={loading()} onClick={Login}>
+          <Button flex="1 1 0" minW="0" loading={loading()} onClick={Login}>
             {t("login.login")}
           </Button>
         </HStack>
