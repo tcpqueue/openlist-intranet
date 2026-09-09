@@ -78,3 +78,7 @@
 .hope-modal__close-button, .hope-drawer__close-button { left: auto; right: 16px; }
 .hope-popover__close-button { left: auto; right: 8px; }
 .hope-modal__header { padding-right: 56px; }
+
+.storage-layout-switch {
+  white-space: nowrap;
+}

@@ -68,15 +68,7 @@ const Storages = () => {
   )
   return (
     <VStack spacing="$3" alignItems="start" w="$full">
-      <HStack
-        spacing="$2"
-        gap="$2"
-        w="$full"
-        wrap={{
-          "@initial": "wrap",
-          "@md": "unset",
-        }}
-      >
+      <HStack spacing="$2" gap="$2" w="$full" wrap="wrap">
         <Button
           colorScheme="accent"
           loading={getStoragesLoading()}
@@ -99,36 +91,40 @@ const Storages = () => {
           {t("storages.other.load_all")}
         </Button>
         <Show when={drivers().length > 0}>
-          <Select
-            multiple
-            value={selectedDrivers()}
-            onChange={setSelectedDrivers}
-            // variant="outline"
-          >
-            <SelectTrigger>
-              <SelectPlaceholder>
-                {t("storages.other.filter_by_driver")}
-              </SelectPlaceholder>
-              <SelectValue />
-              <SelectIcon />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectListbox>
-                <For each={drivers()}>
-                  {(item) => (
-                    <SelectOption value={item}>
-                      <SelectOptionText>
-                        {t(`drivers.drivers.${item}`)}
-                      </SelectOptionText>
-                      <SelectOptionIndicator />
-                    </SelectOption>
-                  )}
-                </For>
-              </SelectListbox>
-            </SelectContent>
-          </Select>
+          <Box w="220px" flexShrink={0}>
+            <Select
+              multiple
+              value={selectedDrivers()}
+              onChange={setSelectedDrivers}
+              // variant="outline"
+            >
+              <SelectTrigger>
+                <SelectPlaceholder>
+                  {t("storages.other.filter_by_driver")}
+                </SelectPlaceholder>
+                <SelectValue />
+                <SelectIcon />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectListbox>
+                  <For each={drivers()}>
+                    {(item) => (
+                      <SelectOption value={item}>
+                        <SelectOptionText>
+                          {t(`drivers.drivers.${item}`)}
+                        </SelectOptionText>
+                        <SelectOptionIndicator />
+                      </SelectOption>
+                    )}
+                  </For>
+                </SelectListbox>
+              </SelectContent>
+            </Select>
+          </Box>
         </Show>
         <HopeSwitch
+          class="storage-layout-switch"
+          flexShrink={0}
           checked={layout() === "table"}
           onChange={(e: Event) => {
             setLayout(

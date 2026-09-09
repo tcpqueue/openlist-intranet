@@ -33,6 +33,10 @@ const puppeteer = require(process.env.INTRANET_PUPPETEER);
         result.contentWidth=width;
       }
       if(/\.(txt|pdf|docx)$/.test(route)&&!text.includes('下载到本地后')) throw new Error('Missing download view');
+      if(route.endsWith('/storages')) {
+        const height=await page.$eval('.storage-layout-switch',e=>e.getBoundingClientRect().height);
+        if(height>40) throw new Error('Storage layout label wraps vertically: '+height);
+      }
       if(route.endsWith('/other')) await page.evaluate(()=>document.querySelectorAll('input').forEach(input=>input.style.visibility='hidden'));
       await page.screenshot({path:path.join(process.env.INTRANET_TEST_OUT,'old-'+route.replace(/\//g,'_')+'.png'),fullPage:true});
     }
